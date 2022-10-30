@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Mclick</title>
+  </head>
+  <body>
+    <h2>MClick - MIDI Metronome Control Panel</h2>
+    <form id="upload-form" action="" method="POST" enctype="multipart/form-data">
+            <fieldset>
+            <!-- Tempo Slider -->
+                <div class="row">
+                    <h4>Tempo</h4>
+                    <div class="slidecontainer">
+                              <input type="range"
+                                     min="40" max="240"
+                                     value="120"
+                                     class="slider"
+                                     id="sliderTempo"
+                                     oninput="this.nextElementSibling.value = this.value"
+                                     onmouseup=""
+                                     ontouchend="">
+                              <output>120</output>
+                              <br>
+                    </div>
+                </div>
+
+                <!-- Swing Slider -->
+                <div class="col-md-4">
+                    <h4>Swing</h4>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="""slidecontainer">
+                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderSwing">
+                              <br>
+                    </div>
+                </div>
+            <!-- Measure Slider -->
+                <div class="col-md-4">
+                    <h4>Measure</h4>
+                </div>
+                <div class="col-md-8">
+                    <div class="""slidecontainer">
+                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderMeasure">
+                    </div>
+                </div>
+
+            <!-- Beat Slider -->
+                <div class="col-md-4">
+                    <h4>Beat</h4>
+                </div>
+                <div class="col-md-8">
+                    <div class="""slidecontainer">
+                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderBeat">
+                    </div>
+                </div>
+
+            <!-- Eighth Slider -->
+                <div class="col-md-4">
+                    <h4>8th's</h4>
+                </div>
+                <div class="col-md-8">
+                    <div class="""slidecontainer">
+                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderEights">
+                    </div>
+                </div>
+
+
+                <!-- Green spaces -->
+                <div class="col-md-4">
+                    <h4>Sixteenths</h4>
+                </div>
+                <div class="col-md-8">
+                    <div class="""slidecontainer">
+                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderSixteenths">
+                    </div>
+                </div>
+
+
+                    <div class="col-md-6 col-lg-offset-2">
+                        <button type="reset" class="btn btn-default" onclick="myFunction()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                    <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                  </div>
+                </fieldset>
+    </form>
+  </body>
+</html>
