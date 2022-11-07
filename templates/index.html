@@ -5,87 +5,111 @@
     <title>Mclick</title>
   </head>
   <body>
-    <h2>MClick - MIDI Metronome Control Panel</h2>
+    <table>
+      <tr>
+        <td>
+        <img src='../static/mclick.svg'/>
+        </td>
+        <td>
+          <h2>MIDI Metronome</h2>
+        </td>
+      </tr>
+    </table>
+
+    </div> <!-- div class="row"-->
     <form id="upload-form" action="" method="POST" enctype="multipart/form-data">
-            <fieldset>
-            <!-- Tempo Slider -->
-                <div class="row">
-                    <h4>Tempo</h4>
-                    <div class="slidecontainer">
-                              <input type="range"
-                                     min="40" max="240"
-                                     value="120"
-                                     class="slider"
-                                     id="sliderTempo"
-                                     oninput="this.nextElementSibling.value = this.value"
-                                     onmouseup=""
-                                     ontouchend="">
-                              <output>120</output>
-                              <br>
-                    </div>
-                </div>
+              <table>
+                  <tr>
+                      <td>
+                        <img src='../static/quarter.svg' height="80px"/>
+                        <font size="+4">=</font>
+                      </td>
+                      <td>
+                      <div class="slidecontainer">
+                        <output>120</output>
+                        <!-- onSlideCompleted → -->
+                        <input type="range"
+                           min="40" max="240"
+                           value="120"
+                           class="slider"
+                           id="sliderTempo"
+                           oninput="this.previousElementSibling.value = this.value">
+                     </div>
+                     </td>
+                  </tr>
+
+                  <!-- Measure Slider -->
+                  <tr>
+                    <td>
+                      <img src='../static/whole.svg' height="80px"/>
+                    </td>
+                    <td>
+                      <div class="slidecontainer">
+                        <input type="range" min="0" max="127" value="80" class="slider"  id="sliderMeasure">
+                      </div class="slidecontainer">
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+
+                  <!-- Beat Slider -->
+                  <tr>
+                    <td>
+                      <img src='../static/quarter.svg' height="80px"/>
+                    </td>
+                    <td>
+                      <div class="slidecontainer">
+                        <input type="range" min="0" max="127" value="80" class="slider"  id="sliderBeat">
+                      </div class="slidecontainer">
+                    </td>
+                    <td>
+                    </td>
+                  </tr>
+
+                  <!-- Eight note  Slider -->
+                  <tr>
+                    <td>
+                      <img src='../static/eighth.svg' height="80px"/>
+                    </td>
+                    <td>
+                      <div class="slidecontainer">
+                      <input type="range" min="0" max="127" value="0"  class="slider"  id="sliderEighth">
+                      </div class="slidecontainer">
+                    </td>
+                    <td>
+                    </td>
+                </tr>
 
                 <!-- Swing Slider -->
-                <div class="col-md-4">
-                    <h4>Swing</h4>
-                </div>
+                <tr>
+                  <td>
+                    <p> </p>
+                    <img src="../static/straight.svg" height="80px"/>
+                  </td>
+                  <td>
+                    <div class="slidecontainer">
+                      <input type="range" min="0" max="100" value="0" class="slider" id="sliderSwing">
+                  </td>
+                  <td>
+                      <img src="../static/swing.svg" height="80px"/>
+                  </td>
+                </tr>
 
-                <div class="col-md-8">
-                    <div class="""slidecontainer">
-                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderSwing">
-                              <br>
-                    </div>
-                </div>
-            <!-- Measure Slider -->
-                <div class="col-md-4">
-                    <h4>Measure</h4>
-                </div>
-                <div class="col-md-8">
-                    <div class="""slidecontainer">
-                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderMeasure">
-                    </div>
-                </div>
-
-            <!-- Beat Slider -->
-                <div class="col-md-4">
-                    <h4>Beat</h4>
-                </div>
-                <div class="col-md-8">
-                    <div class="""slidecontainer">
-                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderBeat">
-                    </div>
-                </div>
-
-            <!-- Eighth Slider -->
-                <div class="col-md-4">
-                    <h4>8th's</h4>
-                </div>
-                <div class="col-md-8">
-                    <div class="""slidecontainer">
-                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderEights">
-                    </div>
-                </div>
-
-
-                <!-- Green spaces -->
-                <div class="col-md-4">
-                    <h4>Sixteenths</h4>
-                </div>
-                <div class="col-md-8">
-                    <div class="""slidecontainer">
-                              <input type="range" min="0" max="100" value="50" class="slider" id="sliderSixteenths">
-                    </div>
-                </div>
-
-
-                    <div class="col-md-6 col-lg-offset-2">
-                        <button type="reset" class="btn btn-default" onclick="myFunction()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </div>
-                    <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                  </div>
-                </fieldset>
+                  <!-- Sixteenth Note Slider -->
+                  <tr>
+                    <td>
+                      <img src='../static/sixteenth.svg' height="80px"/>
+                    </td>
+                    <td>
+                      <div class="slidecontainer">
+                      <input type="range" min="0" max="127" value="0"  class="slider"  id="sliderSixteenth">
+                      </div class="slidecontainer">
+                  </td>
+                  <td>
+                  </td>
+                </tr>
+            </table>
     </form>
+  </div> <!-- div class="container"-->
   </body>
 </html>
