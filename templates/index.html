@@ -1,25 +1,20 @@
 <!doctype html>
-<script>
-function update_drag()
-{
-  var tempo         = document.getElementById('sliderTempo').value;
-  document.getElementById('TempoValue').value = tempo;
-}
+<html lang="en">
+  <script>
+  function update_drag()
+  {
+    var tempo         = document.getElementById('tempo_slider').value;
+    document.getElementById('tempo_output').value = tempo;
+  }
 
-function send_changes()
-{
-    var tempo         = document.getElementById('sliderTempo').value;
-    var vol_beat      = document.getElementById('sliderBeat').value;
-    var vol_one   = document.getElementById('sliderOne').value;
-    var vol_eighth    = document.getElementById('sliderEighth').value;
-    var vol_sixteenth = document.getElementById('sliderSixteenth').value;
-    var swing         = document.getElementById('sliderSwing').value;
-    var beats         = document.getElementById('selectBeats').value;
-    document.getElementById('upload-form').submit();
-}
-</script>
+  function send_changes()
+  {
+      var tempo = document.getElementById('tempo_slider').value;
+      document.getElementById('tempo_output').value = tempo;
+      document.getElementById('param_form').submit();
+  }
+  </script>
 
-<html>
   <head>
     <meta charset="utf-8">
     <title>Mclick</title>
@@ -28,7 +23,7 @@ function send_changes()
     <table>
       <tr>
         <td>
-        <img src='../static/mclick.svg'/>
+        <img alt='Mclick Logo' src='../static/mclick.svg'>
         </td>
         <td>
           <h2>MIDI Metronome</h2>
@@ -36,100 +31,104 @@ function send_changes()
       </tr>
     </table>
 
-    </div> <!-- div class="row"-->
-    <form id="upload-form" action="" method="POST" enctype="multipart/form-data">
-              <table>
-                  <tr>
-                      <td width=40%>
-                        <img src='../static/quarter.svg' height="80px"/>
-                        <font size="+3">=</font>
-                        <font size="+3"><output id="TempoValue">120</output></font>
-                      </td>
-                      <td>
-                        <div class="slidecontainer">
-                            <!-- onSlideCompleted → -->
-                            <input type="range"
-                               min="40" max="240"
-                               value="120"
-                               class="slider"
-                               oninput = "update_drag()"
-                               onchange = "send_changes()"
-                               id="sliderTempo">
-                       </div>
-                       </td>
-                  </tr>
+    <form id="param_form" action="" method="POST" enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td width=40%>
+                  <img alt='quarter note' src='../static/quarter.svg' height="80">
+                  <font size="+3">=</font>
+                  <font size="+3"><output id="tempo_output">120</output></font>
+                </td>
+                <td>
+                  <div class="slidecontainer">
+                      <!-- onSlideCompleted → -->
+                      <input type="range"
+                         min="40" max="240"
+                         value="120"
+                         class="slider"
+                         oninput = "update_drag()"
+                         onchange = "send_changes()"
+                         id="tempo_slider">
+                 </div>
+               </td>
+               <td></td>
+            </tr>
 
-                  <!-- Measure Slider -->
-                  <tr>
-                    <td>
-                      <img src='../static/whole.svg' height="70px"/>
-                      <select name="beats" id="selectBeats" type="number" onchange="send_changes()">
-                        <option value=2>2</option>
-                        <option value=3>3</option>
-                        <option value=4 selected>4</option>
-                        <option value=6>6</option>
-                        <option value=9>9</option>
-                        <option value=12>12</option>
-                      </select>
-                    </td>
-                    <td>
-                      <div class="slidecontainer">
-                        <input type="range" min="0" max="127" value="80" class="slider"  id="sliderOne" onchange="send_changes()">
-                      </div class="slidecontainer">
-                    </td>
-                  </tr>
+            <!-- Measure Slider -->
+            <tr>
+              <td>
+                <img alt='measure' src='../static/whole.svg' height="70">
+                <select id="measure_length" onchange="send_changes()">
+                  <option value=2>2</option>
+                  <option value=3>3</option>
+                  <option value=4 selected>4</option>
+                  <option value=6>6</option>
+                  <option value=9>9</option>
+                  <option value=12>12</option>
+                </select>
+              </td>
+              <td>
+                <div class="slidecontainer">
+                  <input type="range" min="0" max="127" value="80" class="slider"  id="measure_volume" onchange="send_changes()">
+                </div>
+              </td>
+              <td></td>
+            </tr>
 
-                  <!-- Beat Slider -->
-                  <tr>
-                    <td>
-                      <img src='../static/quarter.svg' height="80px"/>
-                    </td>
-                    <td>
-                      <div class="slidecontainer">
-                        <input type="range" min="0" max="127" value="80" class="slider"  id="sliderBeat" onchange="send_changes()">
-                      </div class="slidecontainer">
-                    </td>
-                  </tr>
+            <!-- Beat Slider -->
+            <tr>
+              <td>
+                <img alt='beat' src='../static/quarter.svg' height="80">
+              </td>
+              <td>
+                <div class="slidecontainer">
+                  <input type="range" min="0" max="127" value="80" class="slider"  id="beat_volume" onchange="send_changes()">
+                </div>
+              </td>
+              <td></td>
+            </tr>
 
-                  <!-- Eight note  Slider -->
-                  <tr>
-                    <td>
-                      <img src='../static/eighth.svg' height="80px"/>
-                    </td>
-                    <td>
-                      <div class="slidecontainer">
-                      <input type="range" min="0" max="127" value="0"  class="slider"  id="sliderEighth" onchange="send_changes()">
-                      </div class="slidecontainer">
-                    </td>
-                </tr>
+            <!-- Eight note  Slider -->
+            <tr>
+              <td>
+                <img alt='eighth note' src='../static/eighth.svg' height="80">
+              </td>
+              <td>
+                <div class="slidecontainer">
+                <input type="range" min="0" max="127" value="0"  class="slider"  id="eighth_volume" onchange="send_changes()">
+                </div>
+              </td>
+              <td></td>
+          </tr>
 
-                <!-- Swing Slider -->
-                <tr>
-                  <td width=35%>
-                    <img src="../static/straight.svg" height="80px"/>
-                  </td>
-                  <td>
-                    <div class="slidecontainer">
-                      <input type="range" min="0" max="100" value="0" class="slider" id="sliderSwing" onchange="send_changes()">
-                  </td>
-                  <td width=20%>
-                      <img src="../static/swing.svg" height="100px"/>
-                  </td>
-                </tr>
+          <!-- Swing Slider -->
+          <tr>
+            <td width=35%>
+              <img alt='straight time' src="../static/straight.svg" height="80">
+            </td>
+            <td>
+              <div class="slidecontainer">
+                <input type="range" min="0" max="100" value="0" class="slider" id="swing_value" onchange="send_changes()">
+                </div>
+            </td>
+            <td width=20%>
+                <img alt='swing' src="../static/swing.svg" height="100">
+            </td>
+          </tr>
 
-                  <!-- Sixteenth Note Slider -->
-                  <tr>
-                    <td>
-                      <img src='../static/sixteenth.svg' height="80px"/>
-                    </td>
-                    <td>
-                      <div class="slidecontainer">
-                      <input type="range" min="0" max="127" value="0"  class="slider"  id="sliderSixteenth" onchange="send_changes()">
-                      </div class="slidecontainer">
-                  </td>
-                </tr>
-            </table>
+            <!-- Sixteenth Note Slider -->
+            <tr>
+              <td>
+                <img alt='sixteenth note' src='../static/sixteenth.svg' height="80">
+              </td>
+              <td>
+                <div class="slidecontainer">
+                <input type="range" min="0" max="127" value="0"  class="slider"  id="sixteenth_volume" onchange="send_changes()">
+                </div>
+              </td>
+              <td></td>
+            </tr>
+      </table>
     </form>
-  </div> <!-- div class="container"-->
   </body>
 </html>
