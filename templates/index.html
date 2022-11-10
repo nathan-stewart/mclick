@@ -41,7 +41,7 @@
                     <!-- onSlideCompleted → -->
                     <input type="range"
                        min="40" max="240"
-                       value="120"
+                       value = {{ parameters['tempo'] }}
                        class="slider"
                        oninput = "update_drag()"
                        onchange = "submit()"
@@ -56,17 +56,14 @@
             <div style="display: table-cell;">
               <img alt='measure' src='../static/whole.svg' height="70">
               <select name="measure_length" id="measure_length" onchange="submit()">
-                <option value=2>2</option>
-                <option value=3>3</option>
-                <option value=4 selected>4</option>
-                <option value=6>6</option>
-                <option value=9>9</option>
-                <option value=12>12</option>
+                {{ parameters['measure_length'] | safe }}
               </select>
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
-                <input type="range" min="0" max="127" value="80" class="slider"  name="measure_volume" id="measure_volume" onchange="submit()">
+                <input type="range" min="0" max="127"
+                value = {{ parameters['measure_volume'] }}
+                class="slider"  name="measure_volume" id="measure_volume" onchange="submit()">
               </div>
             </div>
           </div> <!-- row -->
@@ -78,7 +75,9 @@
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
-                <input type="range" min="0" max="127" value="80" class="slider"  name="beat_volume" id="beat_volume" onchange="submit()">
+                <input type="range" min="0" max="127"
+                    value = {{ parameters['beat_volume'] }}
+                    class="slider"  name="beat_volume" id="beat_volume" onchange="submit()">
               </div>
             </div>
           </div> <!-- row -->
@@ -90,7 +89,9 @@
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
-              <input type="range" min="0" max="127" value="0"  class="slider"  name="eighth_volume" id="eighth_volume" onchange="submit()">
+              <input type="range" min="0" max="127"
+                    value = {{ parameters['eighth_volume'] }}
+                    class="slider"  name="eighth_volume" id="eighth_volume" onchange="submit()">
               </div>
             </div>
         </div>
@@ -102,7 +103,9 @@
           </div>
           <div style="display: table-cell;">
             <div class="slidecontainer">
-              <input type="range" min="0" max="100" value="0" class="slider" name="swing_value" id="swing_value" onchange="submit()">
+              <input type="range" min="0" max="100"
+                    value = {{ parameters['swing_value'] }}
+                    class="slider" name="swing_value" id="swing_value" onchange="submit()">
               </div>
           </div>
           <div style="display: table-cell;">
@@ -117,7 +120,9 @@
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
-              <input type="range" min="0" max="127" value="0"  class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="submit()">
+              <input type="range" min="0" max="127"
+                    value = {{ parameters['sixteenth_volume'] }}
+                    class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="submit()">
               </div>
             </div>
           </div>
