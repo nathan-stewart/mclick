@@ -33,8 +33,6 @@
           <div style="display: table-row;">
               <div style="display: table-cell;">
                 <img alt='quarter note' src='../static/quarter.svg' height="80">
-                =
-                <output name="tempo_output" id="tempo_output">120</output>
               </div>
               <div style="display: table-cell;">
                 <div class="slidecontainer">
@@ -49,15 +47,15 @@
                        id="tempo_slider">
                </div>
              </div>
+             <div style="display: table-cell;">
+               <output name="tempo_output" id="tempo_output">120</output>
+             </div>
           </div>
 
           <!-- Measure Slider -->
           <div style="display: table-row;">
             <div style="display: table-cell;">
               <img alt='measure' src='../static/whole.svg' height="70">
-              <select name="measure_length" id="measure_length" onchange="submit()">
-                {{ parameters['measure_length'] | safe }}
-              </select>
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
@@ -65,6 +63,11 @@
                 value = {{ parameters['measure_volume'] }}
                 class="slider"  name="measure_volume" id="measure_volume" onchange="submit()">
               </div>
+            </div>
+            <div style="display: table-cell">
+              <select name="measure_length" id="measure_length" onchange="submit()">
+                {{ parameters['measure_length'] | safe }}
+              </select>
             </div>
           </div> <!-- row -->
 
