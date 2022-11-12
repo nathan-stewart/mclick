@@ -3,46 +3,105 @@
   <head>
     <meta charset="utf-8">
     <title>Mclick</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
   </head>
   <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <script>
-    function update_drag()
-    {
-      var tempo         = document.getElementById('tempo_slider').value;
-      document.getElementById('tempo_output').value = tempo;
-    }
+         $(document).ready(function() {
+            var socket = io.connect("http://localhost:5000");}
+            $('input.sync').on('input', function(event) {
+              socket.emit('Slider value changed', {
+                  who:$(this).attr('id'),
+                  data: $(this).val()
+               });
+               return false; });
+          );
 
-    function submit()
-    {
-        var tempo = document.getElementById('tempo_slider').value;
-        document.getElementById('tempo_output').value = tempo;
-        document.getElementById('param_form').submit();
-    }
+          socket.on('after connect', function(msg)
+          {
+            console.log('after connect', msg)
+            socket.emit('my event', {data: 'I\'m connected!'});
+          });
+
+          socket.on("update value", function(msg)
+          {
+            console.log('update value', msg);
+            socket.emit("value changed" {{ parameters }} )
+          });
+
+          socket.on("disconnect", function()
+          {
+            console.log('disconnect');
+              socket.emit("disconnect");
+          });
+
+          function send_updates()
+          {
+            {{ parameters["tempo_output"    ] }} = document.getElementById("tempo_output");
+            {{ parameters["measure_volume"  ] }} = document.getElementById("measure_volume");
+            {{ parameters["measure_length"  ] }} = document.getElementById("measure_length");
+            {{ parameters["beat_volume"     ] }} = document.getElementById("beat_volume");
+            {{ parameters["eighth_volume"   ] }} = document.getElementById("eighth_volume");
+            {{ parameters["swing_value"     ] }} = document.getElementById("swing_value");
+            {{ parameters["sixteenth_volume"] }} = document.getElementById("sixteenth_volume");
+            socket.emit("value changed", {{ parameters }});
+          }
+
+          function update_tempo_drag()
+          {
+            let tempo = document.getElementById("tempo_slider").value;
+            document.getElementById("tempo_output").value = tempo;
+          }
+
+          function upMeter()
+          {
+            let meters = parameters.measure_options;
+            let meter_idx = meters.indexOf(parameters.measure_length);
+            if (meters_idx < meters.length - 1)
+            {
+              meters_idx += 1;
+              parameters.measure_length = meters[meters_idx]
+            }
+          }
+
+          function downMeter()
+          {
+            let meters = parameters.measure_options;
+            let meter_idx = meters.indexOf(parameters.measure_length);
+            if (meters_idx > 0)
+            {
+              meters_idx -= 1;
+              parameters.measure_length = meters[meters_idx]
+            }
+          }
     </script>
+
     <div>
         <div style="display: table-row;">
           <div style="display: table-cell;">
             <h1>MIDI Metronome</h1>
           </div>
           <div style="display: table-cell;">
-            <img alt='Mclick Logo' src='../static/mclick.svg'>
+            <img alt="Mclick Logo" src="../static/mclick.svg">
           </div>
         </div>
 
     <form id="param_form" method="POST" enctype="multipart/form-data">
           <div style="display: table-row;">
               <div style="display: table-cell;">
-                <img alt='quarter note' src='../static/quarter.svg' height="80">
+                <img alt="quarter note" src="../static/quarter.svg" height="80">
               </div>
               <div style="display: table-cell;">
                 <div class="slidecontainer">
                     <!-- onSlideCompleted → -->
                     <input type="range"
                        min="40" max="240"
-                       value = {{ parameters['tempo'] }}
+                       value="{{ parameters.tempo_output }}"
                        class="slider"
-                       oninput = "update_drag()"
-                       onchange = "submit()"
+                       oninput="update_tempo_drag()"
+                       onchange="send_updates()"
                        name="tempo_slider"
                        id="tempo_slider">
                </div>
@@ -55,32 +114,38 @@
           <!-- Measure Slider -->
           <div style="display: table-row;">
             <div style="display: table-cell;">
-              <img alt='measure' src='../static/whole.svg' height="70">
+              <img alt="measure" src="../static/whole.svg" height="70">
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
                 <input type="range" min="0" max="127"
-                value = {{ parameters['measure_volume'] }}
-                class="slider"  name="measure_volume" id="measure_volume" onchange="submit()">
+                value="{{ parameters.measure_volume }}"
+                class="slider"  name="measure_volume" id="measure_volume" onchange="send_updates()">
               </div>
             </div>
             <div style="display: table-cell">
-              <select name="measure_length" id="measure_length" onchange="submit()">
-                {{ parameters['measure_length'] | safe }}
-              </select>
+              <img alt="measure" src="../static/{{ parameters.measure_length }}.svg" height="70">
+            </div>
+            <div style="display: table-cell">
+              <div style="display: table-row;">
+                    <button onclick="upMeter()" id="meterup" title="up">/\</button>
+              </div>
+              <div style="display: table-row;">
+                <button onclick="downMeter()" id="meterdown" title="down">\/</button>
+              </div>
             </div>
           </div> <!-- row -->
 
           <!-- Beat Slider -->
           <div style="display: table-row;">
             <div style="display: table-cell;">
-              <img alt='beat' src='../static/quarter.svg' height="80">
+              <img alt="beat" src="../static/quarter.svg" height="80">
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
                 <input type="range" min="0" max="127"
-                    value = {{ parameters['beat_volume'] }}
-                    class="slider"  name="beat_volume" id="beat_volume" onchange="submit()">
+                    value="{{ parameters.beat_volume }}"
+                    class="slider"  name="beat_volume" id="beat_volume" onchange="send_updates()">
               </div>
             </div>
           </div> <!-- row -->
@@ -88,13 +153,13 @@
           <!-- Eight note  Slider -->
           <div style="display: table-row;">
             <div style="display: table-cell;">
-              <img alt='eighth note' src='../static/eighth.svg' height="80">
+              <img alt="eighth note" src="../static/eighth.svg" height="80">
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
               <input type="range" min="0" max="127"
-                    value = {{ parameters['eighth_volume'] }}
-                    class="slider"  name="eighth_volume" id="eighth_volume" onchange="submit()">
+                    value = "{{ parameters.eighth_volume }}"
+                    class="slider"  name="eighth_volume" id="eighth_volume" onchange="send_updates()">
               </div>
             </div>
         </div>
@@ -102,30 +167,30 @@
         <!-- Swing Slider -->
         <div style="display: table-row;">
           <div style="display: table-cell;">
-            <img alt='straight time' src="../static/straight.svg" height="80">
+            <img alt="straight time" src="../static/straight.svg" height="80">
           </div>
           <div style="display: table-cell;">
             <div class="slidecontainer">
               <input type="range" min="0" max="100"
-                    value = {{ parameters['swing_value'] }}
-                    class="slider" name="swing_value" id="swing_value" onchange="submit()">
+                    value="{{ parameters.swing_value }}"
+                    class="slider" name="swing_value" id="swing_value" onchange="send_updates()">
               </div>
           </div>
           <div style="display: table-cell;">
-              <img alt='swing' src="../static/swing.svg" height="100">
+              <img alt="swing" src="../static/swing.svg" height="100">
           </div>
         </div>
 
           <!-- Sixteenth Note Slider -->
           <div style="display: table-row;">
             <div style="display: table-cell;">
-              <img alt='sixteenth note' src='../static/sixteenth.svg' height="80">
+              <img alt="sixteenth note" src="../static/sixteenth.svg" height="80">
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
               <input type="range" min="0" max="127"
-                    value = {{ parameters['sixteenth_volume'] }}
-                    class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="submit()">
+                    value="{{ parameters.sixteenth_volume }}"
+                    class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="send_updates()">
               </div>
             </div>
           </div>

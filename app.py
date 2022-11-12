@@ -1,12 +1,11 @@
 
 from flask import Flask, render_template, request
-
-
-app = Flask(__name__)
+from flask_socketio import SocketIO, send, emit
 
 parameters = {
 'tempo' : 120,
 'measure_length' : 4,
+'measure_options' : [2,3,4,6,9,12],
 'measure_volume' : 80,
 'beat_volume': 80,
 'eighth_volume' : 0,
@@ -14,24 +13,29 @@ parameters = {
 'sixteenth_volume' : 0
 }
 
-measure_selections = [2,3,4,6,9,12]
+app = Flask(__name__)
+socketio = SocketIO(app)
 
-@app.route('/', methods = ['GET', 'POST' ])
+@app.route('/')
 def index():
-    if (request.method == 'POST'):
-        results = request.form.to_dict(flat=True)
-        parameters['tempo'] =  int(results['tempo_slider'])
-        parameters['measure_volume'] = int(results['measure_volume'])
-        parameters['beat_volume'] = int(results['beat_volume'])
-        parameters['eighth_volume'] = int(results['eighth_volume'])
-        parameters['sixteenth_volume'] = int(results['sixteenth_volume'])
-        parameters['swing_value'] = int(results['swing_value'])
-        select_options = ''
-        for i in measure_selections:
-            selected = ''
-            if int(results['measure_length']) == i:
-                selected = ' selected '
-            select_options = select_options + '  <option value=%s%s>%s</option>' % (i, selected, str(i))
-        parameters['measure_length'] = select_options
-        print(parameters)
     return render_template('index.html', parameters=parameters)
+
+@socketio.on('connect')
+def on_update(fields):
+    print('connect: ' + str(fields))
+
+@socketio.on('Slider value changed')
+def value_changed(message):
+    values[message['who']] = message['data']
+    emit('update value', message, broadcast=True)
+
+@socketio.on('value changed')
+def on_disconnect(data):
+    print('value changed: ' + str(data))
+
+@socketio.on('disconnect')
+def on_disconnect():
+    print('Disconnected')
+
+if __name__ == "__main__":
+    socketio.run(app)
