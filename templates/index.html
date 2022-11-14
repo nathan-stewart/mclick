@@ -3,79 +3,58 @@
   <head>
     <meta charset="utf-8">
     <title>Mclick</title>
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
   </head>
   <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+          integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+          crossorigin="anonymous"></script>
     <script>
-         $(document).ready(function() {
-            var socket = io.connect("http://localhost:5000");}
-            $('input.sync').on('input', function(event) {
-              socket.emit('Slider value changed', {
-                  who:$(this).attr('id'),
-                  data: $(this).val()
-               });
-               return false; });
-          );
+      var socket = io();
+      var parameters = {};
 
-          socket.on('after connect', function(msg)
-          {
-            console.log('after connect', msg)
-            socket.emit('my event', {data: 'I\'m connected!'});
-          });
+      function send_updates()
+      {
+        parameters["tempo_output"    ] = document.getElementById("tempo_output").value;
+        parameters["measure_volume"  ] = document.getElementById("measure_volume").value;
+        //parameters["measure_length"  ] = document.getElementById("measure_length").value;
+        parameters["beat_volume"     ] = document.getElementById("beat_volume").value;
+        parameters["eighth_volume"   ] = document.getElementById("eighth_volume").value;
+        parameters["swing_value"     ] = document.getElementById("swing_value").value;
+        parameters["sixteenth_volume"] = document.getElementById("sixteenth_volume").value;
+        socket.emit("push_params", parameters);
+      }
 
-          socket.on("update value", function(msg)
-          {
-            console.log('update value', msg);
-            socket.emit("value changed" {{ parameters }} )
-          });
+      function update_tempo_drag()
+      {
+        let tempo_val = document.getElementById("tempo_slider").value;
+        document.getElementById("tempo_output").value = document.getElementById("tempo_slider").value;
+      }
 
-          socket.on("disconnect", function()
-          {
-            console.log('disconnect');
-              socket.emit("disconnect");
-          });
+      function upMeter()
+      {
+        let meters = parameters.measure_options;
+        socket.emit("push_params", parameters);
+        let meter_idx = meters.indexOf(parameters.measure_length);
 
-          function send_updates()
-          {
-            {{ parameters["tempo_output"    ] }} = document.getElementById("tempo_output");
-            {{ parameters["measure_volume"  ] }} = document.getElementById("measure_volume");
-            {{ parameters["measure_length"  ] }} = document.getElementById("measure_length");
-            {{ parameters["beat_volume"     ] }} = document.getElementById("beat_volume");
-            {{ parameters["eighth_volume"   ] }} = document.getElementById("eighth_volume");
-            {{ parameters["swing_value"     ] }} = document.getElementById("swing_value");
-            {{ parameters["sixteenth_volume"] }} = document.getElementById("sixteenth_volume");
-            socket.emit("value changed", {{ parameters }});
-          }
+        if (meters_idx < meters.length - 1)
+        {
+          meters_idx += 1;
+          parameters.measure_length = meters[meters_idx]
+        }
+        socket.emit("push_params", parameters);
+      }
 
-          function update_tempo_drag()
-          {
-            let tempo = document.getElementById("tempo_slider").value;
-            document.getElementById("tempo_output").value = tempo;
-          }
-
-          function upMeter()
-          {
-            let meters = parameters.measure_options;
-            let meter_idx = meters.indexOf(parameters.measure_length);
-            if (meters_idx < meters.length - 1)
-            {
-              meters_idx += 1;
-              parameters.measure_length = meters[meters_idx]
-            }
-          }
-
-          function downMeter()
-          {
-            let meters = parameters.measure_options;
-            let meter_idx = meters.indexOf(parameters.measure_length);
-            if (meters_idx > 0)
-            {
-              meters_idx -= 1;
-              parameters.measure_length = meters[meters_idx]
-            }
-          }
+      function downMeter()
+      {
+        let meters = parameters.measure_options;
+        let meter_idx = meters.indexOf(parameters.measure_length);
+        if (meters_idx > 0)
+        {
+          meters_idx -= 1;
+          parameters.measure_length = meters[meters_idx]
+        }
+        socket.emit("push_params", parameters);
+      }
     </script>
 
     <div>
@@ -88,7 +67,7 @@
           </div>
         </div>
 
-    <form id="param_form" method="POST" enctype="multipart/form-data">
+        <form id="param_form" method="POST" enctype="multipart/form-data">
           <div style="display: table-row;">
               <div style="display: table-cell;">
                 <img alt="quarter note" src="../static/quarter.svg" height="80">
@@ -98,7 +77,7 @@
                     <!-- onSlideCompleted → -->
                     <input type="range"
                        min="40" max="240"
-                       value="{{ parameters.tempo_output }}"
+                       value={{ parameters.tempo }}
                        class="slider"
                        oninput="update_tempo_drag()"
                        onchange="send_updates()"
@@ -107,7 +86,7 @@
                </div>
              </div>
              <div style="display: table-cell;">
-               <output name="tempo_output" id="tempo_output">120</output>
+               <output name="tempo_output" id="tempo_output">{{ parameters.tempo }}</output>
              </div>
           </div>
 
@@ -119,7 +98,7 @@
             <div style="display: table-cell;">
               <div class="slidecontainer">
                 <input type="range" min="0" max="127"
-                value="{{ parameters.measure_volume }}"
+                value={{ parameters.measure_volume }}
                 class="slider"  name="measure_volume" id="measure_volume" onchange="send_updates()">
               </div>
             </div>
@@ -128,10 +107,10 @@
             </div>
             <div style="display: table-cell">
               <div style="display: table-row;">
-                    <button onclick="upMeter()" id="meterup" title="up">/\</button>
+                  <button type="button" onclick="upMeter()" id="meterup" title="up">/\</button>
               </div>
               <div style="display: table-row;">
-                <button onclick="downMeter()" id="meterdown" title="down">\/</button>
+                  <button type="button"  onclick="downMeter()" id="meterdown" title="down">\/</button>
               </div>
             </div>
           </div> <!-- row -->
@@ -144,7 +123,7 @@
             <div style="display: table-cell;">
               <div class="slidecontainer">
                 <input type="range" min="0" max="127"
-                    value="{{ parameters.beat_volume }}"
+                    value={{ parameters.beat_volume }}
                     class="slider"  name="beat_volume" id="beat_volume" onchange="send_updates()">
               </div>
             </div>
@@ -158,7 +137,7 @@
             <div style="display: table-cell;">
               <div class="slidecontainer">
               <input type="range" min="0" max="127"
-                    value = "{{ parameters.eighth_volume }}"
+                    value = {{ parameters.eighth_volume }}
                     class="slider"  name="eighth_volume" id="eighth_volume" onchange="send_updates()">
               </div>
             </div>
@@ -172,7 +151,7 @@
           <div style="display: table-cell;">
             <div class="slidecontainer">
               <input type="range" min="0" max="100"
-                    value="{{ parameters.swing_value }}"
+                    value={{ parameters.swing_value }}
                     class="slider" name="swing_value" id="swing_value" onchange="send_updates()">
               </div>
           </div>
@@ -188,13 +167,13 @@
             </div>
             <div style="display: table-cell;">
               <div class="slidecontainer">
-              <input type="range" min="0" max="127"
-                    value="{{ parameters.sixteenth_volume }}"
-                    class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="send_updates()">
+                  <input type="range" min="0" max="127"
+                        value={{ parameters.sixteenth_volume }}
+                        class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="send_updates()">
               </div>
             </div>
           </div>
-      </div>
-    </form>
+        </form>
+    </div>
   </body>
 </html>
