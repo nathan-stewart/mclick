@@ -3,9 +3,9 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 
 settings = {
-'tempo' : 80,
-'measure_length' : 12,
-'measure_options' : [2,3,4,6,9,12],
+'tempo' : 116,
+'measure_length' : 4,
+'measure_options' : "2,3,4,6,9,12",
 'measure_volume' : 80,
 'beat_volume': 80,
 'eighth_volume' : 0,
@@ -31,6 +31,10 @@ def on_update(parameters):
 @socketio.on('disconnect')
 def on_disconnect():
     print('shutdown')
+
+@socketio.on('log')
+def on_log(msg):
+    print('log: ' + str(msg))
 
 if __name__ == "__main__":
     socketio.run(app)
