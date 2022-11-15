@@ -14,6 +14,7 @@
 
       function send_updates()
       {
+        let measure_length_img = document.getElementById('measure_length_img');
         settings["tempo_output"    ] = document.getElementById("tempo_output").value;
         settings["measure_volume"  ] = document.getElementById("measure_volume").value;
         settings["measure_length"  ] = document.getElementById("measure_length").value;
@@ -22,10 +23,7 @@
         settings["eighth_volume"   ] = document.getElementById("eighth_volume").value;
         settings["swing_value"     ] = document.getElementById("swing_value").value;
         settings["sixteenth_volume"] = document.getElementById("sixteenth_volume").value;
-
-        let measure_length_img = document.getElementById('measure_length_img');
         measure_length_img.src = "../static/" + settings["measure_length"] + ".svg";
-        measure_length_img.alt = str(settings["measure_length"]) + ' beats';
         socket.emit("push_params", settings);
       }
 
@@ -105,7 +103,7 @@
               </div>
             </div>
             <div style="display: table-cell">
-              <img alt="{{ parameters.measure_length }} beats" name="measure_length_img" id="measure_length_img" src="../static/{{ parameters.measure_length }}.svg" height="70">
+              <img alt="num beats" name="measure_length_img" id="measure_length_img" src="../static/{{ parameters.measure_length }}.svg" height="70">
               <input type="hidden" name="measure_length" id="measure_length" value="{{ parameters.measure_length }}" >
               <input type="hidden" name="measure_options" id="measure_options" value="{{ parameters.measure_options }}" >
             </div>
