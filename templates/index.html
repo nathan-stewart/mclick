@@ -23,9 +23,9 @@
         settings["swing_value"     ] = document.getElementById("swing_value").value;
         settings["sixteenth_volume"] = document.getElementById("sixteenth_volume").value;
 
-        //let measure_length = document.getElementById('measure_length'));
-        //measure_length_img.src = "../static/" + settings["measure_length"] + ".svg";
-        //measure_length_img.alt = str(settings["measure_length"]) + ' beats';
+        let measure_length_img = document.getElementById('measure_length_img');
+        measure_length_img.src = "../static/" + settings["measure_length"] + ".svg";
+        measure_length_img.alt = str(settings["measure_length"]) + ' beats';
         socket.emit("push_params", settings);
       }
 
