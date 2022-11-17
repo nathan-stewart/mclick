@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 
 settings = {
-'tempo' : 116,
+'tempo' : 96,
 'measure_length' : 4,
 'measure_options' : "2,3,4,6,9,12",
 'measure_volume' : 80,
@@ -37,4 +40,4 @@ def on_log(msg):
     print('log: ' + str(msg))
 
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0', port=5000)
