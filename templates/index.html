@@ -1,6 +1,67 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <style>
+      html {
+        height: 100%;
+      }
+
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+    .container {
+      display:table;
+      width: 100%;
+    }
+
+    .row{
+      display:table-caption;
+      vertical-align: top;
+      width: 100%;
+      height: 25%;
+      }
+
+     #row {
+      display:table-row;
+      width: 100%;
+      height: 12.5%;
+    }
+
+    .column {
+      display:table-cell;
+
+    }
+
+    .legend-column {
+      width: 40px;
+      background: #ddd;
+    }
+
+    .slidecontainer {
+      width:500px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      padding: 0px 10px;
+      background: repeating-linear-gradient(to right,
+      #ccc,
+      #ccc 0%,
+      #ccc 66%,
+      #ccc 100%);
+    }
+
+    .param_text {
+      padding: 50px;
+      align-content: center;
+      font-size: 50px;
+    }
+
+
+    </style>
     <meta charset="utf-8">
     <title>Mclick</title>
   </head>
@@ -57,125 +118,112 @@
       }
     </script>
 
-    <div>
-        <div style="display: table-row;">
-          <div style="display: table-cell;">
+    <div style="display:table">
+        <div style="display:table-row;">
+          <div style="display:table-caption;">
             <h1>MIDI Metronome</h1>
-          </div>
-          <div style="display: table-cell;">
-            <img alt="Mclick Logo" src="../static/mclick.svg">
-          </div>
-        </div>
+          </div>   <!-- display:table-caption -->
+          <div style="display:table-cell;">
+            <img alt="Mclick Logo" src="../static/mclick.svg" height="100">
+          </div>   <!-- display:table-cell -->
+        </div> <!-- display:table-row -->
 
-        <form id="param_form" method="POST" enctype="multipart/form-data">
-          <div style="display: table-row;">
-              <div style="display: table-cell;">
-                <img alt="quarter note" src="../static/quarter.svg" height="80">
-              </div>
-              <div style="display: table-cell;">
-                <div class="slidecontainer">
-                    <!-- onSlideCompleted → -->
-                    <input type="range"
-                       min="40" max="240"
-                       value="{{ parameters.tempo }}"
-                       class="slider"
-                       oninput="update_tempo_drag()"
-                       onchange="send_updates()"
-                       name="tempo_slider"
-                       id="tempo_slider">
-               </div>
-             </div>
-             <div style="display: table-cell;">
-               <output name="tempo_output" id="tempo_output">{{ parameters.tempo }}</output>
-             </div>
-          </div>
-
-          <!-- Measure Slider -->
-          <div style="display: table-row;">
-            <div style="display: table-cell;">
-              <img alt="measure" src="../static/whole.svg" height="70">
-            </div>
-            <div style="display: table-cell;">
+        <div style="display:table-row;">
+            <div class="legend-column" style="display:table-cell">
+              <img alt="quarter note" src="../static/quarter.svg" height="80">
+            </div>   <!-- display:table-cell -->
+            <div style="display:table-cell;">
               <div class="slidecontainer">
-                <input type="range" min="0" max="127"
-                value="{{ parameters.measure_volume }}"
-                class="slider"  name="measure_volume" id="measure_volume" onchange="send_updates()">
-              </div>
-            </div>
-            <div style="display: table-cell">
-              <img alt="num beats" name="measure_length_img" id="measure_length_img" src="../static/{{ parameters.measure_length }}.svg" height="70">
-              <input type="hidden" name="measure_length" id="measure_length" value="{{ parameters.measure_length }}" >
-              <input type="hidden" name="measure_options" id="measure_options" value="{{ parameters.measure_options }}" >
-            </div>
-            <div style="display: table-cell">
-              <div style="display: table-row;">
-                  <button type="button" onclick="meter_clicked(this.id)" id="meter_up" title="up">/\</button>
-              </div>
-              <div style="display: table-row;">
-                  <button type="button"  onclick="meter_clicked(this.id)" id="meter_down" title="down">\/</button>
-              </div>
-            </div>
-          </div> <!-- row -->
+                  <!-- onSlideCompleted → -->
+                  <input type="range" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" onchange="send_updates()" id="tempo_slider">
+             </div>  <!-- slidecontainer -->
+           </div>   <!-- display:table-cell -->
+           <div style="display:table-cell;">
+             <output class="param_text" name="tempo_output" id="tempo_output">{{ parameters.tempo }}</output>
+           </div>   <!-- display:table-cell -->
+        </div>  <!-- display:table-row -->
 
-          <!-- Beat Slider -->
-          <div style="display: table-row;">
-            <div style="display: table-cell;">
-              <img alt="beat" src="../static/quarter.svg" height="80">
-            </div>
-            <div style="display: table-cell;">
-              <div class="slidecontainer">
-                <input type="range" min="0" max="127"
-                    value={{ parameters.beat_volume }}
-                    class="slider"  name="beat_volume" id="beat_volume" onchange="send_updates()">
-              </div>
-            </div>
-          </div> <!-- row -->
-
-          <!-- Eight note  Slider -->
-          <div style="display: table-row;">
-            <div style="display: table-cell;">
-              <img alt="eighth note" src="../static/eighth.svg" height="80">
-            </div>
-            <div style="display: table-cell;">
-              <div class="slidecontainer">
-              <input type="range" min="0" max="127"
-                    value = {{ parameters.eighth_volume }}
-                    class="slider"  name="eighth_volume" id="eighth_volume" onchange="send_updates()">
-              </div>
-            </div>
-        </div>
-
-        <!-- Swing Slider -->
-        <div style="display: table-row;">
-          <div style="display: table-cell;">
-            <img alt="straight time" src="../static/straight.svg" height="80">
-          </div>
-          <div style="display: table-cell;">
+        <!-- Measure Slider -->
+        <div style="display:table-row;">
+          <div class="legend-column" style="display:table-cell;">
+            <img alt="measure" src="../static/whole.svg" height="70">
+          </div>   <!-- display:table-cell -->
+          <div style="display:table-cell;">
             <div class="slidecontainer">
-              <input type="range" min="0" max="100"
-                    value={{ parameters.swing_value }}
-                    class="slider" name="swing_value" id="swing_value" onchange="send_updates()">
-              </div>
-          </div>
-          <div style="display: table-cell;">
-              <img alt="swing" src="../static/swing.svg" height="100">
-          </div>
-        </div>
+              <input type="range" min=0 max=127 value={{ parameters.measure_volume }}
+                class="slider"  name="measure_volume" id="measure_volume" onchange="send_updates()">
+            </div>  <!-- slidecontainer -->
+          </div>   <!-- display:table-cell -->
+          <div class="legend-column" style="display:table-cell">
+            <img alt="num beats" id="measure_length_img" src="../static/{{ parameters.measure_length }}.svg" height="70">
+            <input type="hidden" id="measure_length" value="{{ parameters.measure_length }}" >
+            <input type="hidden" id="measure_options" value="{{ parameters.measure_options }}" >
+          </div>   <!-- display:table-cell -->
+          <div style="display:table-cell">
+            <div style="display:table-row;">
+                <button type="button" onclick="meter_clicked(this.id)" id="meter_up" title="up">/\</button>
+            </div>   <!-- display:table-row -->
+            <div style="display:table-row;">
+                <button type="button"  onclick="meter_clicked(this.id)" id="meter_down" title="down">\/</button>
+            </div> <!-- display:table-row -->
+          </div>   <!-- display:table-cell -->
+        </div> <!-- row -->
 
-          <!-- Sixteenth Note Slider -->
-          <div style="display: table-row;">
-            <div style="display: table-cell;">
-              <img alt="sixteenth note" src="../static/sixteenth.svg" height="80">
-            </div>
-            <div style="display: table-cell;">
-              <div class="slidecontainer">
-                  <input type="range" min="0" max="127"
-                        value={{ parameters.sixteenth_volume }}
-                        class="slider"  name="sixteenth_volume" id="sixteenth_volume" onchange="send_updates()">
-              </div>
-            </div>
-          </div>
-        </form>
-    </div>
+        <!-- Beat Slider -->
+        <div style="display:table-row;">
+          <div class="legend-column" style="display:table-cell;">
+            <img alt="beat" src="../static/quarter.svg" height="80">
+          </div>   <!-- display:table-cell -->
+          <div style="display:table-cell;">
+            <div class="slidecontainer">
+              <input type="range" min=0 max=127 value={{ parameters.beat_volume }}
+                  class="slider"  name="beat_volume" id="beat_volume" onchange="send_updates()">
+            </div>  <!-- slidecontainer -->
+          </div>   <!-- display:table-cell -->
+        </div> <!-- row -->
+
+        <!-- Eight note  Slider -->
+        <div style="display:table-row;">
+          <div class="legend-column" style="display:table-cell;">
+            <img alt="eighth note" src="../static/eighth.svg" height="80">
+          </div>   <!-- display:table-cell -->
+          <div style="display:table-cell;">
+            <div class="slidecontainer">
+              <input type="range" min=0 max=127 value={{ parameters.eighth_volume }}
+                  class="slider"  name="eighth_volume" id="eighth_volume" onchange="send_updates()">
+            </div>  <!-- slidecontainer -->
+          </div>   <!-- display:table-cell -->
+      </div> <!-- display:table-row -->
+
+      <!-- Swing Slider -->
+      <div style="display:table-row;">
+        <div class="legend-column" style="display:table-cell;">
+          <img alt="straight time" src="../static/straight.svg" height="80">
+        </div>   <!-- display:table-cell -->
+        <div style="display:table-cell;">
+          <div class="slidecontainer">
+            <input type="range" min=0 max=100 value={{ parameters.swing_value }}
+                  class="slider" name="swing_value" id="swing_value" onchange="send_updates()">
+          </div>  <!-- slidecontainer -->
+        </div>   <!-- display:table-cell -->
+        <div class="legend-column" style="display:table-cell;">
+            <img alt="swing" src="../static/swing.svg" height="100">
+
+        </div>   <!-- display:table-cell -->
+      </div> <!-- display:table-row -->
+
+        <!-- Sixteenth Note Slider -->
+        <div style="display:table-row;">
+          <div class="legend-column" style="display:table-cell;">
+            <img alt="sixteenth note" src="../static/sixteenth.svg" height="80">
+          </div>   <!-- display:table-cell -->
+          <div style="display:table-cell;">
+            <div class="slidecontainer">
+                <input type="range" min=0 max=127 value={{ parameters.sixteenth_volume }}
+                      class="slider"  name="sixteenth_volume" id="sixteenth_volume" step="any" onchange="send_updates()">
+            </div>  <!-- slidecontainer -->
+          </div>   <!-- display:table-cell -->
+        </div> <!-- display:table-row -->
+    </div>  <!-- display:table -->
   </body>
 </html>
