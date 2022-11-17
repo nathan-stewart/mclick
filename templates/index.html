@@ -17,47 +17,41 @@
       width: 100%;
     }
 
-    .row{
-      display:table-caption;
-      vertical-align: top;
-      width: 100%;
-      height: 25%;
-      }
-
-     #row {
+     .row {
       display:table-row;
       width: 100%;
       height: 12.5%;
     }
 
-    .column {
-      display:table-cell;
+    .logo {
+      display: table-cell;
+      width: 50%;
+      align: center;
+    }
 
+    .cell {
+      display:table-cell;
+    }
+
+    .column {
+      display:table-column;
     }
 
     .legend-column {
-      width: 40px;
-      background: #ddd;
+      width:100px;
     }
 
     .slidecontainer {
-      width:500px;
+      width:90%;
     }
 
     input[type="range"] {
-      width: 100%;
-      padding: 0px 10px;
-      background: repeating-linear-gradient(to right,
-      #ccc,
-      #ccc 0%,
-      #ccc 66%,
-      #ccc 100%);
+      width: 90%;
     }
 
     .param_text {
-      padding: 50px;
       align-content: center;
-      font-size: 50px;
+      font-size: 60px;
     }
 
 
@@ -118,30 +112,28 @@
       }
     </script>
 
-    <div style="display:table">
-        <div style="display:table-row;">
-          <div style="display:table-caption;">
-            <h1>MIDI Metronome</h1>
-          </div>   <!-- display:table-caption -->
-          <div style="display:table-cell;">
-            <img alt="Mclick Logo" src="../static/mclick.svg" height="100">
-          </div>   <!-- display:table-cell -->
-        </div> <!-- display:table-row -->
+    <div class="container-fluid">
+      <div class="col-xs-9" >
+        <h1>MIDI Metronome<h1>
+      </div> <!-- cell -->
+      <div class="col-xs-3">
+        <img alt="Mclick Logo" src="../static/mclick.svg" height="100">
+      </div> <!-- cell -->
+    </div>  <!-- table -->
 
-        <div style="display:table-row;">
-            <div class="legend-column" style="display:table-cell">
-              <img alt="quarter note" src="../static/quarter.svg" height="80">
-            </div>   <!-- display:table-cell -->
-            <div style="display:table-cell;">
-              <div class="slidecontainer">
-                  <!-- onSlideCompleted → -->
-                  <input type="range" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" onchange="send_updates()" id="tempo_slider">
-             </div>  <!-- slidecontainer -->
-           </div>   <!-- display:table-cell -->
-           <div style="display:table-cell;">
-             <output class="param_text" name="tempo_output" id="tempo_output">{{ parameters.tempo }}</output>
-           </div>   <!-- display:table-cell -->
-        </div>  <!-- display:table-row -->
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-1" style="display:table-cell">
+          <img alt="quarter note" src="../static/quarter.svg" height="80">
+        </div>   <!-- display:table-cell -->
+          <div class="col-xs-9">
+              <!-- onSlideCompleted → -->
+              <input type="range" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" onchange="send_updates()" id="tempo_slider">
+         </div>  <!-- slidecontainer -->
+       <div class="col-xs-2" style="display:table-cell;">
+         <output class="param_text" name="tempo_output" id="tempo_output">{{ parameters.tempo }}</output>
+       </div>   <!-- display:table-cell -->
+      </div>  <!-- display:table-row -->
 
         <!-- Measure Slider -->
         <div style="display:table-row;">
@@ -159,13 +151,16 @@
             <input type="hidden" id="measure_length" value="{{ parameters.measure_length }}" >
             <input type="hidden" id="measure_options" value="{{ parameters.measure_options }}" >
           </div>   <!-- display:table-cell -->
-          <div style="display:table-cell">
-            <div style="display:table-row;">
-                <button type="button" onclick="meter_clicked(this.id)" id="meter_up" title="up">/\</button>
-            </div>   <!-- display:table-row -->
-            <div style="display:table-row;">
-                <button type="button"  onclick="meter_clicked(this.id)" id="meter_down" title="down">\/</button>
-            </div> <!-- display:table-row -->
+
+          <div class="column" >
+              <div class="row" style="display:table-row;">
+                  <button type="button" onclick="meter_clicked(this.id)" id="meter_up" title="up">/\</button>
+              </div>   <!-- display:table-row -->
+              <div class="cell" style="display:table-row;">
+                  <button type="button"  onclick="meter_clicked(this.id)" id="meter_down" title="down">\/</button>
+              </div> <!-- display:table-row -->
+            </div> <!-- column -->
+          </div> <!-- row -->
           </div>   <!-- display:table-cell -->
         </div> <!-- row -->
 
