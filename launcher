@@ -1,0 +1,43 @@
+#!/bin/bash
+
+EVENTS="MODIFY"
+WATCH_FILES="app.py templates/index.html"
+
+CONTINUE=1
+
+function get_pid()
+{
+   ps aux| grep "python3 ./app.py" | grep -v "grep" | tr -s ' ' | cut -d' ' -f2
+}
+
+function kill_servers()
+{
+  while :
+  do
+      RUNNING=$(get_pid);
+      if [ -z "$RUNNING" ];
+      then
+        break
+      else
+        echo "Killing old process " $RUNNING
+        kill -9 $RUNNING
+      fi
+  done
+}
+
+trap ctrl_c INT
+function ctrl_c() {
+  CONTINUE=0
+  echo "Exiting..."
+  kill_servers
+}
+
+kill_servers
+while [ $CONTINUE -gt 0 ];
+do
+    ./app.py&
+    RUNNING=$(get_pid)
+    echo "Starting instance $RUNNING"
+    inotifywait -q -e $EVENTS $WATCH_FILES 2>&1 >/dev/null
+    kill_servers
+done
