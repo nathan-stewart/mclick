@@ -18,7 +18,7 @@
           .logo {
             text-align: center;
             vertical-align: top;
-            height: 25%;
+            height: 100px;
             display: table-cell;
           }
           .title {
@@ -26,7 +26,7 @@
             vertical-align: center;
             font-size: xxx-large;
             display: table-cell;
-            height: 25%;
+            height: 100px;
           }
 
           .legend {
@@ -37,8 +37,8 @@
           }
 
           .slider {
-            height: 12.5%;
-            vertical-align: center;
+            height: 50px;
+            vertical-align: middle;
             display: table-cell;
           }
 
@@ -58,6 +58,7 @@
           .spin-button {
             display: flex;
             height: 12%;
+            align-items: center;
             padding-right: 10px;
           }
 
@@ -82,9 +83,9 @@
           }
 
           .row {
-            border: dashed;
+
             display: table-row;
-            height: 12%;
+            height: 15%;
           }
           </style>
   </head>
@@ -161,7 +162,7 @@
     <div class="container-fluid">
       <div class="row">
         <div class="logo">
-          <img alt="Mclick Logo" src="../static/mclick.svg">
+          <img alt="Mclick Logo" src="../static/mclick.svg" height=80px width=100px>
         </div> <!-- cell -->
         <div class="title">
           MIDI Click
@@ -188,7 +189,7 @@
             <div class="spin-button">
               <div class="spin-button_buttons">
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_down" title="down"><</button>
-                  <img alt="num beats" id="measure_length_display" src="../static/4.svg">
+                  <img alt="num beats" id="measure_length_display" src="../static/4.svg" height=40px>
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_up" title="up">></button>
                   <input id="measure_length"  type="hidden" readonly value="{{ parameters.measure_length }}" >
                   <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
@@ -197,8 +198,8 @@
             <script type="text/javascript"> set_meter_icon();</script>
         </div>
         <div class="slider">
-              <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure_volume }} onchange="send_updates()">
-          </div>
+            <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure_volume }} onchange="send_updates()">
+        </div>
         <div class=gadget></div>
       </div> <!-- row -->
 
