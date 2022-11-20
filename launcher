@@ -1,7 +1,7 @@
 #!/bin/bash
 
 EVENTS="MODIFY"
-WATCH_FILES="app.py templates/index.html"
+WATCH_FILES="app.py ticker.py templates/index.html"
 
 CONTINUE=1
 
