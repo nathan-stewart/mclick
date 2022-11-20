@@ -5,6 +5,8 @@ eventlet.monkey_patch()
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 
+import ticker
+
 settings = {
 'tempo' : 96,
 'measure_length' : 4,
@@ -24,16 +26,19 @@ def index():
     return render_template('index.html', parameters=settings)
 
 @socketio.on('connect')
-def on_connect(fields):
+def on_connect():
     print('start')
+    ticker.launch(settings)
 
 @socketio.on('push_params')
 def on_update(parameters):
-    print('Got push_params: ' + str(parameters))
+    print('push_params: ' + str(parameters))
+    ticker.launch(parameters)
 
 @socketio.on('disconnect')
 def on_disconnect():
-    print('shutdown')
+    print('stopping')
+    ticker.stop()
 
 @socketio.on('log')
 def on_log(msg):
