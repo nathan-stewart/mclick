@@ -89,7 +89,7 @@
           }
           </style>
   </head>
-  <body onload="on_load()">
+  <body onload="myload()">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
           integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
           crossorigin="anonymous"></script>
@@ -97,6 +97,32 @@
     <script>
       let socket = io();
       let settings = {};
+
+        function myLoad(event)
+        {
+            if (window.localStorage) {
+                var t0 = Number(window.localStorage['myUnloadEventFlag']);
+                if (isNaN(t0)) t0=0;
+                var t1=new Date().getTime();
+                var duration=t1-t0;
+                if (duration<5*1000) {
+                    // less than 5 seconds since the previous Unload event => it's a browser reload (so cancel the disconnection request)
+                    askServerToCancelDisconnectionRequest(); // asynchronous AJAX call
+                }
+            }
+        }
+
+        function myUnload(event)
+        {
+            if (window.localStorage) {
+                // flag the page as being unloading
+                window.localStorage['myUnloadEventFlag']=new Date().getTime();
+            }
+
+            // notify the server that we want to disconnect the user in a few seconds (I used 5 seconds)
+            askServerToDisconnectUserInAFewSeconds(); // synchronous AJAX call
+        }
+
 
       function set_meter_icon()
       {
@@ -123,14 +149,13 @@
 
       function send_updates()
       {
-        settings["tempo_output"    ] = document.getElementById("tempo_output").value;
-        settings["measure_options" ] = document.getElementById("measure_options").value;
-        settings["measure_length"  ] = document.getElementById("measure_length").value;
-        settings["measure_volume"  ] = document.getElementById("measure_volume").value;
-        settings["beat_volume"     ] = document.getElementById("beat_volume").value;
-        settings["eighth_volume"   ] = document.getElementById("eighth_volume").value;
-        settings["swing_value"     ] = document.getElementById("swing_value").value;
-        settings["sixteenth_volume"] = document.getElementById("sixteenth_volume").value;
+        settings["tempo"     ] = parseInt(document.getElementById("tempo_output").value);
+        settings["beats"     ] = parseInt(document.getElementById("measure_length").value);
+        settings["measure"   ] = parseInt(document.getElementById("measure_volume").value);
+        settings["beat"      ] = parseInt(document.getElementById("beat_volume").value);
+        settings["eighths"   ] = parseInt(document.getElementById("eighth_volume").value);
+        settings["swing"     ] = parseInt(document.getElementById("swing_value").value);
+        settings["sixteenths"] = parseInt(document.getElementById("sixteenth_volume").value);
         socket.emit("push_params", settings);
       }
 
@@ -191,14 +216,14 @@
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_down" title="down"><</button>
                   <img alt="num beats" id="measure_length_display" src="../static/4.svg" height=40px>
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_up" title="up">></button>
-                  <input id="measure_length"  type="hidden" readonly value="{{ parameters.measure_length }}" >
+                  <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
                   <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
               </div>
             </div>
             <script type="text/javascript"> set_meter_icon();</script>
         </div>
         <div class="slider">
-            <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure_volume }} onchange="send_updates()">
+            <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} onchange="send_updates()">
         </div>
         <div class=gadget></div>
       </div> <!-- row -->
@@ -209,7 +234,7 @@
             <img alt="beat" src="../static/quarter.svg" style="icon">
           </div>
           <div class="slider">
-              <input type="range" min=0 max=127 value={{ parameters.beat_volume }}
+              <input type="range" min=0 max=127 value={{ parameters.beat }}
                   class="slider"  id="beat_volume" onchange="send_updates()">
           </div>   <!-- display:table-cell -->
           <div class=gadget></div>
@@ -221,7 +246,7 @@
                 <img alt="eighths" src="../static/eighth.svg" style="icon">
           </div>   <!-- display:table-cell -->
           <div class="slider">
-              <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighth_volume }} onchange="send_updates()" >
+              <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} onchange="send_updates()" >
           </div>
           <div class=gadget></div>
       </div>
@@ -232,7 +257,7 @@
               <img alt="straight" src="../static/straight.svg" style="icon">
           </div>
           <div class="slider">
-              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing_value }} onchange="send_updates()">
+              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} onchange="send_updates()">
         </div>
         <div class="gadget">
             <img alt="swing" src="../static/swing.svg" >
@@ -245,7 +270,7 @@
             <img alt="sixteenths" src="../static/sixteenth.svg" style="icon">
           </div>   <!-- display:table-cell -->
           <div class="slider">
-                <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenth_volume }} step="any" onchange="send_updates()">
+                <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} step="any" onchange="send_updates()">
           </div>
           <div class=gadget></div>
         </div>

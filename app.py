@@ -8,14 +8,14 @@ from flask_socketio import SocketIO, send, emit
 import ticker
 
 settings = {
-'tempo' : 96,
-'measure_length' : 4,
-'measure_options' : "2,3,4,6,9,12",
-'measure_volume' : 80,
-'beat_volume': 80,
-'eighth_volume' : 0,
-'swing_value' : 0,
-'sixteenth_volume' : 0
+'tempo'           : 96,
+'beats'           :  4,
+'measure'         : 80,
+'beat'            : 80,
+'eighths'         :  0,
+'swing'           :  0,
+'sixteenths'      :  0,
+'measure_options' : "2,3,4,6,9,12"
 }
 
 app = Flask(__name__)
@@ -27,22 +27,23 @@ def index():
 
 @socketio.on('connect')
 def on_connect():
+    global settings
     print('start')
     ticker.launch(settings)
 
 @socketio.on('push_params')
 def on_update(parameters):
-    print('push_params: ' + str(parameters))
-    ticker.launch(parameters)
+    global settings
+    # they seem to get converted to strings in the transporter
+    for key in parameters.keys():
+        if key != 'measure_options':
+            settings[key] = int(parameters[key])
+    ticker.launch(settings)
 
 @socketio.on('disconnect')
 def on_disconnect():
     print('stopping')
-    ticker.stop()
-
-@socketio.on('log')
-def on_log(msg):
-    print('log: ' + str(msg))
+    ticker.shutdown()
 
 if __name__ == "__main__":
     socketio.run(app, host='0.0.0.0', port=5000)
