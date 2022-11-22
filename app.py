@@ -8,12 +8,12 @@ from flask_socketio import SocketIO, send, emit
 import ticker
 
 settings = {
-'tempo'           : 96,
+'tempo'           : 60,
 'beats'           :  4,
-'measure'         : 80,
+'measure'         : 0,
 'beat'            : 80,
-'eighths'         :  0,
-'swing'           :  0,
+'eighths'         : 80,
+'swing'           : 66,
 'sixteenths'      :  0,
 'measure_options' : "2,3,4,6,9,12"
 }
