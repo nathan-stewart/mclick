@@ -10,10 +10,10 @@ import ticker
 settings = {
 'tempo'           : 60,
 'beats'           :  4,
-'measure'         : 0,
+'measure'         : 100,
 'beat'            : 80,
-'eighths'         : 80,
-'swing'           : 66,
+'eighths'         :  0,
+'swing'           :  0,
 'sixteenths'      :  0,
 'measure_options' : "2,3,4,6,9,12"
 }
@@ -21,7 +21,7 @@ settings = {
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-@app.route('/')
+@app.route('/mclick')
 def index():
     return render_template('index.html', parameters=settings)
 
