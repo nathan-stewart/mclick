@@ -31,6 +31,7 @@ window = 3e-3    # 3mS window - if we're later than this value drop it
 stop  = True     # used to exit the thread
 settings = None  # the parameters to use
 clock = True
+play = True
 mido.set_backend('mido.backends.rtmidi/LINUX_ALSA')
 OUTPUT_PORT='UMC1820:UMC1820 MIDI 1 28:0'
 output = mido.open_output(OUTPUT_PORT)
@@ -74,7 +75,7 @@ def update_settings(params):
         'beat'       : Event(period=beat,                     velocity=settings['beat']),
         'eighths'    : Event(period=beat / 2,                 velocity=settings['eighths']),
         'sixteenths' : Event(period=beat / 4,                 velocity=settings['sixteenths']),
-        'midi_clock' : Event(period=beat / 24)
+        'midi_clock' : Event(period=beat / 24,                velocity=127)
         }
 
 def Ticker():
@@ -83,24 +84,29 @@ def Ticker():
     global notes
     global events
     global clock
+    global play
 
     last_measure = time.time()
     since_one = 0
+    if clock:
+        output.send(mido.Message('start'))
     while True:
         if stop:
             break
 
         now = time.time()
-        if events['measure'].test_and_fire(now):
-            output.send(mido.Message('note_on', channel=9, note=notes['kick'], velocity=settings['measure']))
-        if events['beat'].test_and_fire(now):
-            output.send(mido.Message('note_on', channel=9, note=notes['side stick'], velocity=settings['beat']))
-        if events['eighths'].test_and_fire(now, settings['swing']):
-            output.send(mido.Message('note_on', channel=9, note=notes['ride'], velocity=settings['eighths']))
-        if events['sixteenths'].test_and_fire(now):
-            output.send(mido.Message('note_on', channel=9, note=notes['closed hat'], velocity=settings['sixteenths']))
+        if play:
+            if events['measure'].test_and_fire(now):
+                output.send(mido.Message('note_on', channel=9, note=notes['kick'], velocity=settings['measure']))
+            if events['beat'].test_and_fire(now):
+                output.send(mido.Message('note_on', channel=9, note=notes['side stick'], velocity=settings['beat']))
+            if events['eighths'].test_and_fire(now, settings['swing']):
+                output.send(mido.Message('note_on', channel=9, note=notes['ride'], velocity=settings['eighths']))
+            if events['sixteenths'].test_and_fire(now):
+                output.send(mido.Message('note_on', channel=9, note=notes['closed hat'], velocity=settings['sixteenths']))
         if clock:
             if events['midi_clock'].test_and_fire(now):
+                #output.send(mido.Message('note_on', channel=9, note=notes['closed hat'], velocity=127))
                 output.send(mido.Message('clock'))
         time.sleep(0)
 
@@ -127,6 +133,7 @@ def shutdown():
     print('Stop')
     stop = True
     scheduler.join()
+    output.send(mido.Message('stop'))
     output.panic()
     output.close()
     scheduler = None
