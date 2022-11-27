@@ -163,6 +163,7 @@
       {
         let tempo_val = document.getElementById("tempo_slider").value.padEnd(3);
         document.getElementById("tempo_output").value = document.getElementById("tempo_slider").value;
+        send_updates();
       }
 
       function meter_clicked(button_id)
@@ -203,7 +204,7 @@
           <output class="param_text" id="tempo_output"> {{ parameters.tempo }}</output>
         </div>
         <div class="slider">
-            <input type="range" id="tempo_slider" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" onchange="send_updates()" >
+            <input type="range" id="tempo_slider" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" >
         </div>
         <div class=gadget></div>
       </div>
@@ -223,9 +224,12 @@
             <script type="text/javascript"> set_meter_icon();</script>
         </div>
         <div class="slider">
-            <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} onchange="send_updates()">
+            <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} oninput="send_updates()">
         </div>
-        <div class=gadget></div>
+        <div class=gadget>
+          <!--input type="checkbox" id="mick_clock_en" value="enabled">
+          <label for="mick_clock_en"> Send MIDI Clock</label><br-->
+        </div>
       </div> <!-- row -->
 
       <!-- Beat -->
@@ -235,7 +239,7 @@
           </div>
           <div class="slider">
               <input type="range" min=0 max=127 value={{ parameters.beat }}
-                  class="slider"  id="beat_volume" onchange="send_updates()">
+                  class="slider"  id="beat_volume" oninput="send_updates()">
           </div>   <!-- display:table-cell -->
           <div class=gadget></div>
       </div>
@@ -246,7 +250,7 @@
                 <img alt="eighths" src="../static/eighth.svg" style="icon">
           </div>   <!-- display:table-cell -->
           <div class="slider">
-              <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} onchange="send_updates()" >
+              <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} oninput="send_updates()" >
           </div>
           <div class=gadget></div>
       </div>
@@ -257,7 +261,7 @@
               <img alt="straight" src="../static/straight.svg" style="icon">
           </div>
           <div class="slider">
-              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} onchange="send_updates()">
+              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} oninput="send_updates()">
         </div>
         <div class="gadget">
             <img alt="swing" src="../static/swing.svg" >
@@ -270,7 +274,7 @@
             <img alt="sixteenths" src="../static/sixteenth.svg" style="icon">
           </div>   <!-- display:table-cell -->
           <div class="slider">
-                <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} step="any" onchange="send_updates()">
+                <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} step="any" oninput="send_updates()">
           </div>
           <div class=gadget></div>
         </div>
