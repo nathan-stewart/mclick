@@ -81,11 +81,11 @@
             height: 15%;
           }
 
-          .dropdown-button {
+          .dropbtn {
               background-image: url( "../static/mclick.svg" );
               background-size: 76px 76px;
               height: 80px;
-              width: 80px;              
+              width: 80px;
           }
 
           /* The container <div> - needed to position the dropdown content */
@@ -98,14 +98,14 @@
             .dropdown-content {
               display: none;
               position: absolute;
-              /*background-color: #f1f1f1;*/
+              background-color: #f1f1f1;
               min-width: 160px;
               box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
               z-index: 1;
             }
 
             .dropdown-content a {
-              /*color: black; */
+              color: black;
               padding: 12px 16px;
               text-decoration: none;
               display: block;
@@ -116,7 +116,6 @@
 
             /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
             .show {display:block;}
-            <!-- https://www.w3schools.com/howto/howto_js_dropdown.asp -->
           </style>
   </head>
   <body onload="myload()">
@@ -214,13 +213,14 @@
         send_updates();
       }
 
-      function popup-config-menu(){
-          document.getElementById("config-dropdown").classList.toggle("show");
+      function popup_menu(){
+          document.getElementById("config.dropbtn").classList.toggle("show");
       }
 
       // Close the dropdown menu if the user clicks outside of it
       window.onclick = function(event) {
         if (!event.target.matches('.dropbtn')) {
+          socket.emit('log', 'click outside: %s' % (event.target));
           var dropdowns = document.getElementsByClassName("dropdown-content");
           var i;
           for (i = 0; i < dropdowns.length; i++) {
@@ -233,11 +233,12 @@
       }
     </script>
 
-    <div class="container-fluid">
-      <div class="row">
+    <div class="container-fluid" >
+      <div class="row" >
+        <!-- https://www.w3schools.com/howto/howto_js_dropdown.asp -->
         <div class="dropdown">
-          <button class="dropdown-button"  onclick="popup-config-menu()"/>
-            <div id="config-dropdown" class="dropdown-content">
+          <button onclick="popup_menu()" class="dropbtn" ></button>
+            <div id="config.dropbtn" class="dropdown-content">
                 <a href="#">MIDI Port</a>
                 <a href="#">MIDI Clock</a>
                 <a href="#">Sounds</a>
@@ -314,7 +315,7 @@
               <img alt="straight" src="../static/straight.svg" style="icon">
           </div>
           <div class="slider">
-              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} oninput="send_updates()">
+              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} oninput="send_updates()" >
         </div>
         <div class="gadget">
             <img alt="swing" src="../static/swing.svg" >
