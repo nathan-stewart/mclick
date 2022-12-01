@@ -4,234 +4,13 @@
     <meta charset="utf-8">
     <title>MidiClick</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-    <style>
-          html, body {
-            padding:0;
-            margin:0;
-            width:100%;
-          }
-
-          .container-fluid {
-            display: table;
-          }
-
-          .title {
-            text-align: center;
-            vertical-align: center;
-            font-size: xxx-large;
-            display: table-cell;
-            height: 100px;
-          }
-
-          .legend {
-            height: 12.5%;
-            text-align: center;
-            vertical-align: center;
-            display: table-cell;
-          }
-
-          .slider {
-            height: 50px;
-            vertical-align: middle;
-            display: table-cell;
-          }
-
-          .tempo {
-            font-size: xx-large;
-            text-align: center;
-            vertical-align: center;
-            display: table-cell;
-          }
-
-          .gadget {
-            text-align: center;
-            vertical-align: center;
-            display: table-cell;
-          }
-
-          .spin-button {
-            display: flex;
-            height: 12%;
-            align-items: center;
-            padding-right: 10px;
-          }
-
-          .spin-button__buttons {
-            /* Content is centered vertically */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-
-            /* Left border */
-            border-left: 1px solid #d1d5db;
-          }
-
-          .spin-button_button {
-            /* Reset */
-            border-color: transparent;
-            cursor: pointer;
-
-            /* Make buttons have the same height */
-            flex: 1;
-          }
-
-          .row {
-
-            display: table-row;
-            height: 15%;
-          }
-
-          .dropbtn {
-              background-image: url( "../static/mclick.svg" );
-              background-size: 76px 76px;
-              height: 80px;
-              width: 80px;
-          }
-
-          /* The container <div> - needed to position the dropdown content */
-            .dropdown {
-              position: relative;
-              display: inline-block;
-            }
-
-            /* Dropdown Content (Hidden by Default) */
-            .dropdown-content {
-              display: none;
-              position: absolute;
-              background-color: #f1f1f1;
-              min-width: 160px;
-              box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-              z-index: 1;
-            }
-
-            .dropdown-content a {
-              color: black;
-              padding: 12px 16px;
-              text-decoration: none;
-              display: block;
-            }
-
-            /* Change color of dropdown links on hover */
-            .dropdown-content a:hover {background-color: #ddd;}
-
-            /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
-            .show {display:block;}
-          </style>
+    <link href="{{ url_for('static', filename='styles.css') }} ">
   </head>
   <body onload="myload()">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
           integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
           crossorigin="anonymous"></script>
-
-    <script>
-      let socket = io();
-      let settings = {};
-
-        function myLoad(event)
-        {
-            if (window.localStorage) {
-                var t0 = Number(window.localStorage['myUnloadEventFlag']);
-                if (isNaN(t0)) t0=0;
-                var t1=new Date().getTime();
-                var duration=t1-t0;
-                if (duration<5*1000) {
-                    // less than 5 seconds since the previous Unload event => it's a browser reload (so cancel the disconnection request)
-                    askServerToCancelDisconnectionRequest(); // asynchronous AJAX call
-                }
-            }
-        }
-
-        function myUnload(event)
-        {
-            if (window.localStorage) {
-                // flag the page as being unloading
-                window.localStorage['myUnloadEventFlag']=new Date().getTime();
-            }
-
-            // notify the server that we want to disconnect the user in a few seconds (I used 5 seconds)
-            askServerToDisconnectUserInAFewSeconds(); // synchronous AJAX call
-        }
-
-
-      function set_meter_icon()
-      {
-        let meter = parseInt(document.getElementById("measure_length").value);
-        icon = "../static/";
-        switch (meter)
-        {
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 9:
-          case 12:
-            icon += meter;
-            break;
-          default:
-            meter = "4"; // fallback
-        }
-        icon += ".svg";
-        document.getElementById("measure_length_display").src = icon;
-      }
-
-      function send_updates()
-      {
-        settings["tempo"     ] = parseInt(document.getElementById("tempo_output").value);
-        settings["beats"     ] = parseInt(document.getElementById("measure_length").value);
-        settings["measure"   ] = parseInt(document.getElementById("measure_volume").value);
-        settings["beat"      ] = parseInt(document.getElementById("beat_volume").value);
-        settings["eighths"   ] = parseInt(document.getElementById("eighth_volume").value);
-        settings["swing"     ] = parseInt(document.getElementById("swing_value").value);
-        settings["sixteenths"] = parseInt(document.getElementById("sixteenth_volume").value);
-        socket.emit("push_params", settings);
-      }
-
-      function update_tempo_drag()
-      {
-        let tempo_val = document.getElementById("tempo_slider").value.padEnd(3);
-        document.getElementById("tempo_output").value = document.getElementById("tempo_slider").value;
-        send_updates();
-      }
-
-      function meter_clicked(button_id)
-      {
-        let meters = document.getElementById("measure_options").value.split(",").map(Number);
-        let current_meter = parseInt(document.getElementById("measure_length").value);
-        let meter_idx = meters.indexOf(current_meter);
-
-        if (button_id == "meter_up" && (meter_idx < meters.length - 1))
-        {
-          meter_idx += 1;
-        } else if (button_id == "meter_down" && meter_idx > 0)
-        {
-            meter_idx -= 1;
-        }
-        document.getElementById("measure_length").value = meters[meter_idx];
-        set_meter_icon();
-        send_updates();
-      }
-
-      function popup_menu(){
-          document.getElementById("config.dropbtn").classList.toggle("show");
-      }
-
-      // Close the dropdown menu if the user clicks outside of it
-      window.onclick = function(event) {
-        if (!event.target.matches('.dropbtn')) {
-          socket.emit('log', 'click outside: %s' % (event.target));
-          var dropdowns = document.getElementsByClassName("dropdown-content");
-          var i;
-          for (i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-              openDropdown.classList.remove('show');
-            }
-          }
-        }
-      }
-    </script>
+    <script src="{{ url_for('static', filename='callbacks.js') }}"></script>
 
     <div class="container-fluid" >
       <div class="row" >
@@ -269,7 +48,7 @@
             <div class="spin-button">
               <div class="spin-button_buttons">
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_down" title="down"><</button>
-                  <img alt="num beats" id="measure_length_display" src="../static/4.svg" height=40px>
+                  <img alt="num beats" id="measure_length_display" src=url_for('static', filename="4.svg") height=40px>
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_up" title="up">></button>
                   <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
                   <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
@@ -289,7 +68,7 @@
       <!-- Beat -->
       <div class="row">
           <div class="legend">
-            <img alt="beat" src="../static/quarter.svg" style="icon">
+            <img alt="beat" src="{{ url_for('static', filename='quarter.svg') }}" style="icon">
           </div>
           <div class="slider">
               <input type="range" min=0 max=127 value={{ parameters.beat }}
@@ -301,7 +80,7 @@
         <!-- Eights -->
       <div class="row">
             <div class="legend">
-                <img alt="eighths" src="../static/eighth.svg" style="icon">
+                <img alt="eighths" src="{{ url_for('static', filename='eighth.svg') }}" style="icon">
           </div>   <!-- display:table-cell -->
           <div class="slider">
               <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} oninput="send_updates()" >
@@ -312,20 +91,20 @@
       <!-- Swing -->
       <div class="row">
           <div class="legend">
-              <img alt="straight" src="../static/straight.svg" style="icon">
+              <img alt="straight" src="{{ url_for('static', filename='straight.svg') }}" style="icon">
           </div>
           <div class="slider">
               <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} oninput="send_updates()" >
         </div>
         <div class="gadget">
-            <img alt="swing" src="../static/swing.svg" >
+            <img alt="swing" src="{{ url_for('static', filename='swing.svg') }}" >
         </div>
       </div>
 
         <!-- Sixteenths -->
         <div class="row">
             <div class="legend">
-            <img alt="sixteenths" src="../static/sixteenth.svg" style="icon">
+            <img alt="sixteenths" src="{{ url_for('static', filename='sixteenth.svg') }}" style="icon">
           </div>   <!-- display:table-cell -->
           <div class="slider">
                 <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} step="any" oninput="send_updates()">

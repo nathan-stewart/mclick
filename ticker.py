@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass
 from threading import Thread
-import time
-import  mido
-import math
+import time, math, mido
 
 '''
 I'm not trying to create an entire drum machine. These sounds were chosen for
@@ -34,7 +32,6 @@ clock = True
 play = True
 mido.set_backend('mido.backends.rtmidi/LINUX_ALSA')
 OUTPUT_PORT='UMC1820:UMC1820 MIDI 1 28:0'
-output = mido.open_output(OUTPUT_PORT)
 
 @dataclass
 class Event:
@@ -68,6 +65,9 @@ def update_settings(params):
     global events
     global settings
     global first
+    global output
+
+
     settings = params
     beat = 60.0 / float(params['tempo'])
     events = {
@@ -78,6 +78,31 @@ def update_settings(params):
         'midi_clock' : Event(period=beat / 24,                velocity=127)
         }
 
+    # don't care what we got - that's just for the gui - but midi_port has to be one we can see
+    available_midi_ports = mido.get_output_names()
+    if output:
+        output.close()
+        output = None
+
+    if (settings['midi_port'] and settings['midi_port'] in available_midi_ports):
+        output = mido.open_output(settings['midi_port'])
+        clock = True
+        play = True
+        print('MIDI out set to: ', settings['midi_port'])
+
+    else:
+        print('Could not find MIDI output port: ', settings['midi_port'], ' in ', available_midi_ports)
+
+    if not output:
+        clock = False
+        play = False
+    else:
+        if clock:
+            output.send(mido.Message('start'))
+    print('midi out: ', output)
+    print('clock   : ', clock)
+    print('play    :', play)
+
 def Ticker():
     global stop
     global settings
@@ -85,17 +110,17 @@ def Ticker():
     global events
     global clock
     global play
+    global output
 
     last_measure = time.time()
     since_one = 0
-    if clock:
-        output.send(mido.Message('start'))
+
     while True:
         if stop:
             break
 
         now = time.time()
-        if play:
+        if play and output:
             if events['measure'].test_and_fire(now):
                 output.send(mido.Message('note_on', channel=9, note=notes['kick'], velocity=settings['measure']))
             if events['beat'].test_and_fire(now):
@@ -104,7 +129,7 @@ def Ticker():
                 output.send(mido.Message('note_on', channel=9, note=notes['ride'], velocity=settings['eighths']))
             if events['sixteenths'].test_and_fire(now):
                 output.send(mido.Message('note_on', channel=9, note=notes['closed hat'], velocity=settings['sixteenths']))
-        if clock:
+        if clock and output:
             if events['midi_clock'].test_and_fire(now):
                 #output.send(mido.Message('note_on', channel=9, note=notes['closed hat'], velocity=127))
                 output.send(mido.Message('clock'))

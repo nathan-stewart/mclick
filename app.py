@@ -2,20 +2,22 @@
 import eventlet
 eventlet.monkey_patch()
 
+from logging.config import dictConfig
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
-
-import ticker
+import ticker, mido
 
 settings = {
 'tempo'           : 60,
 'beats'           :  4,
-'measure'         : 100,
-'beat'            : 80,
-'eighths'         :  0,
+'measure'         : 64,
+'beat'            : 48,
+'eighths'         : 24,
 'swing'           :  0,
 'sixteenths'      :  0,
-'measure_options' : "2,3,4,6,9,12"
+'measure_options' : "2,3,4,6,9,12",
+'midi_port'       : 'UMC1820:UMC1820 MIDI 1 28:0',
+'midi_ports'      : set(mido.get_output_names())
 }
 
 app = Flask(__name__)
@@ -28,7 +30,6 @@ def index():
 @socketio.on('connect')
 def on_connect():
     global settings
-    print('start')
     ticker.launch(settings)
 
 @socketio.on('push_params')
@@ -42,8 +43,11 @@ def on_update(parameters):
 
 @socketio.on('disconnect')
 def on_disconnect():
-    print('stopping')
     ticker.shutdown()
+
+@socketio.on('log')
+def on_log(msg):
+    print('log: ' + str(msg))
 
 if __name__ == "__main__":
     socketio.run(app, host='0.0.0.0', port=5000)

@@ -1,0 +1,111 @@
+html, body {
+  padding:0;
+  margin:0;
+  width:100%;
+}
+
+.container-fluid {
+  display: table;
+}
+
+.title {
+  text-align: center;
+  vertical-align: center;
+  font-size: xxx-large;
+  display: table-cell;
+  height: 100px;
+}
+
+.legend {
+  height: 12.5%;
+  text-align: center;
+  vertical-align: center;
+  display: table-cell;
+}
+
+.slider {
+  height: 50px;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+.tempo {
+  font-size: xx-large;
+  text-align: center;
+  vertical-align: center;
+  display: table-cell;
+}
+
+.gadget {
+  text-align: center;
+  vertical-align: center;
+  display: table-cell;
+}
+
+.spin-button {
+  display: flex;
+  height: 12%;
+  align-items: center;
+  padding-right: 10px;
+}
+
+.spin-button__buttons {
+  /* Content is centered vertically */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* Left border */
+  border-left: 1px solid #d1d5db;
+}
+
+.spin-button_button {
+  /* Reset */
+  border-color: transparent;
+  cursor: pointer;
+
+  /* Make buttons have the same height */
+  flex: 1;
+}
+
+.row {
+
+  display: table-row;
+  height: 15%;
+}
+
+.dropbtn {
+    background-image: url( "mclick.svg" );
+    background-size: 76px 76px;
+    height: 80px;
+    width: 80px;
+}
+
+/* The container <div> - needed to position the dropdown content */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  /* Dropdown Content (Hidden by Default) */
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+
+  .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+
+  /* Change color of dropdown links on hover */
+  .dropdown-content a:hover {background-color: #ddd;}
+
+  /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+  .show {display:block;}
