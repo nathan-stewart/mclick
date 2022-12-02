@@ -122,10 +122,7 @@ def Ticker():
     last_measure = time.time()
     since_one = 0
 
-    while True:
-        if stop:
-            break
-
+    while not stop:
         now = time.time()
         if output:
             for e in events:
@@ -133,7 +130,6 @@ def Ticker():
                 if event.test_and_fire(now):
                     output.send(event.message)
         time.sleep(0)
-
 
 scheduler = None
 stop = True
