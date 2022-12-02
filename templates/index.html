@@ -48,7 +48,7 @@
             <div class="spin-button">
               <div class="spin-button_buttons">
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_down" title="down"><</button>
-                  <img alt="num beats" id="measure_length_display" src=url_for('static', filename="4.svg") height=40px>
+                  <img alt="num beats" id="measure_length_display" src=url_for('static', filename="4.svg")>
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_up" title="up">></button>
                   <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
                   <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
