@@ -92,14 +92,14 @@ def update_settings(params):
     if output:
         if clock:
             output.send(mido.Message('stop'))
+        if params['midi_port'] not in str(output):
+            print('Setting MIDI output port to: ' + params['midi_port'])
         output.close()
         output = None
 
     if (settings['midi_port'] and settings['midi_port'] in available_midi_ports):
         output = mido.open_output(settings['midi_port'])
         clock = True
-        print('MIDI out set to: ', settings['midi_port'])
-
     else:
         print('Could not find MIDI output port: ', settings['midi_port'], ' in ', available_midi_ports)
 
@@ -108,8 +108,6 @@ def update_settings(params):
     else:
         if clock:
             output.send(mido.Message('start'))
-    print('midi out: ', output)
-    print('clock   : ', clock)
 
 def Ticker():
     global stop
