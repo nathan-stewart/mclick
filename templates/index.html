@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>MidiClick</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-    <link href="{{ url_for('static', filename='styles.css') }} ">
+    <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='styles.css') }} ">
   </head>
   <body onload="myload()">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
@@ -48,7 +48,7 @@
             <div class="spin-button">
               <div class="spin-button_buttons">
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_down" title="down"><</button>
-                  <img alt="num beats" id="measure_length_display" src=url_for('static', filename="4.svg")>
+                  <img alt="beats" id="measure_length_display" src=url_for('static', filename="4.svg")>
                   <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_up" title="up">></button>
                   <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
                   <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
