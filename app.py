@@ -2,10 +2,9 @@
 import eventlet
 eventlet.monkey_patch()
 
-from logging.config import dictConfig
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
-import ticker, mido
+import ticker, mido, logging
 
 settings = {
 'tempo'           : 60,
@@ -19,6 +18,7 @@ settings = {
 'midi_port'       : 'UMC1820:UMC1820 MIDI 1 28:0',
 'midi_ports'      : set(mido.get_output_names())
 }
+string_fields = ['measure_options', 'midi_port', 'midi_ports']
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -37,7 +37,9 @@ def on_update(parameters):
     global settings
     # they seem to get converted to strings in the transporter
     for key in parameters.keys():
-        if key != 'measure_options':
+        if key in string_fields:
+            settings[key] = parameters[key]
+        else:
             settings[key] = int(parameters[key])
     ticker.launch(settings)
 
@@ -47,7 +49,7 @@ def on_disconnect():
 
 @socketio.on('log')
 def on_log(msg):
-    print('log: ' + str(msg))
+    logging.info('log: ' + str(msg))
 
 if __name__ == "__main__":
     socketio.run(app, host='0.0.0.0', port=5000)
