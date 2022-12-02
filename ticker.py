@@ -37,10 +37,12 @@ class Event:
     period      : float
     played      : bool = True
     message     : mido.messages.messages.Message = None
-    def test_and_fire(self, now, swing = 0):
+    swing       : float = 0.0
+
+    def test_and_fire(self, now):
         delta = math.fmod(now, 2*self.period)
         t0 = 0.0
-        t1 = self.period + self.period * swing/200.0
+        t1 = self.period + self.period * self.swing/200.0
 
         # test for the first note for both swung and unswung
         if (t0 <= delta <= window) or (t1 <= delta <=  (t1+ window)):
@@ -66,7 +68,7 @@ def update_settings(params):
     events = {
         'measure'    : Event(period=beat * settings['beats'], message=mido.Message('note_on', channel=9, note=notes['kick'],        velocity=settings['measure'])),
         'beat'       : Event(period=beat,                     message=mido.Message('note_on', channel=9, note=notes['side stick'],  velocity=settings['beat'])),
-        'eighths'    : Event(period=beat / 2,                 message=mido.Message('note_on', channel=9, note=notes['ride'],        velocity=settings['eighths'])),
+        'eighths'    : Event(period=beat / 2,                 message=mido.Message('note_on', channel=9, note=notes['ride'],        velocity=settings['eighths']), swing=settings['swing']),
         'sixteenths' : Event(period=beat / 4,                 message=mido.Message('note_on', channel=9, note=notes['closed hat'], velocity=settings['sixteenths'])),
         'midi_clock' : Event(period=beat / 24,                message=mido.Message('clock'))
     }
@@ -111,11 +113,8 @@ def Ticker():
         now = time.time()
         if output:
             for e in events:
-                swing =  0
-                if e == 'eighths':
-                    swing = settings['swing']
                 event = events[e]
-                if event.test_and_fire(now, swing):
+                if event.test_and_fire(now):
                     output.send(event.message)
         time.sleep(0)
 
