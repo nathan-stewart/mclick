@@ -15,7 +15,7 @@ settings = {
 'swing'           :  0,
 'sixteenths'      :  0,
 'measure_options' : "2,3,4,6,9,12",
-'midi_port'       : 'UMC1820:UMC1820 MIDI 1 28:0',
+'midi_port'       : 'UMC1820:UMC1820 MIDI 1',
 'midi_ports'      : set(mido.get_output_names())
 }
 string_fields = ['measure_options', 'midi_port', 'midi_ports']
@@ -49,7 +49,7 @@ def on_disconnect():
 
 @socketio.on('log')
 def on_log(msg):
-    logging.info('log: ' + str(msg))
+    print('log: ' + str(msg))
 
 if __name__ == "__main__":
     socketio.run(app, host='0.0.0.0', port=5000)
