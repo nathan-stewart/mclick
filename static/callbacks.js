@@ -27,11 +27,10 @@ function myUnload(event)
 }
 
 
-function set_meter_icon()
+function set_meter_icon(meter)
 {
-  let meter = parseInt(document.getElementById("measure_length").value);
-  icon = meter + ".svg"
-  document.getElementById("measure_length_display").src = url_for('static', filename=icon);
+  let icon = "/static/" + meter + ".svg";
+  document.getElementById("measure_length_display").src = icon;
 }
 
 function send_updates()
@@ -55,6 +54,7 @@ function update_tempo_drag()
 
 function meter_clicked(button_id)
 {
+  socket.emit('log', 'clicked meter button: %s' % (event.target));
   let meters = document.getElementById("measure_options").value.split(",").map(Number);
   let current_meter = parseInt(document.getElementById("measure_length").value);
   let meter_idx = meters.indexOf(current_meter);
@@ -67,7 +67,7 @@ function meter_clicked(button_id)
       meter_idx -= 1;
   }
   document.getElementById("measure_length").value = meters[meter_idx];
-  set_meter_icon();
+  set_meter_icon(meters[meter_idx]);
   send_updates();
 }
 
