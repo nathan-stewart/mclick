@@ -35,11 +35,25 @@ OUTPUT_PORT='UMC1820:UMC1820 MIDI 1 28:0'
 @dataclass
 class Event:
     period      : float
-    played      : bool = True
-    message     : mido.messages.messages.Message = None
-    swing       : float = 0.0
+    message     : mido.messages.messages.Message
+    swing       : float
+    played      : bool
+    mute        : bool
+
+    def __init__(self, period, message=None, swing=0):
+        self.period = period
+        self.message = message
+        self.swing = swing
+        self.played = False
+        if 'velocity=0' in str(self.message):
+            self.mute = True
+        else:
+            self.mute = False
 
     def test_and_fire(self, now):
+        if self.mute:
+            return False
+
         delta = math.fmod(now, 2*self.period)
         t0 = 0.0
         t1 = self.period + self.period * self.swing/200.0
@@ -61,7 +75,7 @@ def update_settings(params):
     global settings
     global first
     global output
-
+    global clock
 
     settings = params
     beat = 60.0 / float(params['tempo'])
@@ -76,6 +90,8 @@ def update_settings(params):
     # don't care what we got - that's just for the gui - but midi_port has to be one we can see
     available_midi_ports = mido.get_output_names()
     if output:
+        if clock:
+            output.send(mido.Message('stop'))
         output.close()
         output = None
 
