@@ -30,7 +30,7 @@ stop  = True     # used to exit the thread
 settings = None  # the parameters to use
 clock = True
 mido.set_backend('mido.backends.rtmidi/LINUX_ALSA')
-OUTPUT_PORT='UMC1820:UMC1820 MIDI 1 28:0'
+OUTPUT_PORT='UMC1820:UMC1820 MIDI 1'
 
 @dataclass
 class Event:
@@ -87,17 +87,23 @@ def update_settings(params):
         'midi_clock' : Event(period=beat / 24,                message=mido.Message('clock'))
     }
 
-    # don't care what we got - that's just for the gui - but midi_port has to be one we can see
-    available_midi_ports = mido.get_output_names()
+    def port_is_available(p):
+        # don't care what we got - that's just for the gui - but midi_port has to be one we can see
+        matches = [ pm for pm in mido.get_output_names() if p in pm]
+        return matches[0]
+
     if output:
         if clock:
             output.send(mido.Message('stop'))
+
+        # check before we close to see if it changed
         if params['midi_port'] not in str(output):
             print('Setting MIDI output port to: ' + params['midi_port'])
         output.close()
         output = None
 
-    if (settings['midi_port'] and settings['midi_port'] in available_midi_ports):
+    settings = params
+    if (settings['midi_port'] and  port_is_available (settings['midi_port'] )):
         output = mido.open_output(settings['midi_port'])
         clock = True
     else:
@@ -125,7 +131,7 @@ def Ticker():
         if output:
             for e in events:
                 event = events[e]
-                if event.test_and_fire(now):
+                if event.test_and_fire(now):                
                     output.send(event.message)
         time.sleep(0)
 
