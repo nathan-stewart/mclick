@@ -2,6 +2,14 @@
 import eventlet
 eventlet.monkey_patch()
 
+
+'''
+TODO:
+    Finish MIDI configuration:
+       * Click on logo configures MIDI interface, channel
+       * Fix Measure Buttons/graphic
+       * Click on icon changes the MIDI note for that subdivision
+'''
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 import ticker, mido, logging
