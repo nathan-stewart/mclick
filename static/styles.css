@@ -16,6 +16,12 @@ html, body {
   height: 100px;
 }
 
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-itmes: stretch;
+}
+
 .legend {
     @extend .col-md-4;
   text-align: center;
