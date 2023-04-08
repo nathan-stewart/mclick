@@ -19,15 +19,13 @@
           <button onclick="popup_menu()" class="dropbtn" ></button>
             <div id="config.dropbtn" class="dropdown-content">
                 <a href="#">MIDI Port</a>
-                <a href="#">MIDI Clock</a>
-                <a href="#">Sounds</a>
           </div>
         </div> <!-- cell -->
         <div class="title">
           MIDI Click
         </div>
       </div>
-    </div>  <!-- table -->
+    </div> 
 
     <div class="container-fluid">
 
@@ -39,29 +37,35 @@
         <div class="slider">
             <input type="range" id="tempo_slider" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" >
         </div>
-        <div class=gadget></div>
+        <div class="gadget">
+        </div>
       </div>
 
       <!-- Measure -->
       <div class="row">
         <div class="legend">
-            <div class="spin-button">
-              <div class="spin-button_buttons">
-                  <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_down" title="down"><</button>
-                  <img alt="beats" id="measure_length_display" >
-                  <button class="spin-button__button" onclick="meter_clicked(this.id)" id="meter_up" title="up">></button>
-                  <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
-                  <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
-              </div>
-            </div>
-            <script type="text/javascript"> set_meter_icon(4);</script>
+          <img alt="downbeat" src="{{ url_for('static', filename='whole.svg') }}" style="icon">
         </div>
+
         <div class="slider">
             <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} oninput="send_updates()">
         </div>
-        <div class=gadget>
+
+        <div class="gadget">
+          <div class="column">
+              <div class="up-button">
+                  <div class="arrow-up" onclick="meter_clicked(this.id)"  id="meter_up" title="up"></div>
+              </div>
+              <div class="down-button">
+                  <div class="arrow-down" onclick="meter_clicked(this.id)" id="meter_down" title="down"></div>
+              </div>
+          </div>
+          <img alt="count" id="measure_length_display" >
+          <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
+          <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
+          <script type="text/javascript"> set_meter_icon(4);</script>
         </div>
-      </div> <!-- row -->
+      </div>
 
       <!-- Beat -->
       <div class="row">
@@ -71,7 +75,7 @@
           <div class="slider">
               <input type="range" min=0 max=127 value={{ parameters.beat }}
                   class="slider"  id="beat_volume" oninput="send_updates()">
-          </div>   <!-- display:table-cell -->
+          </div> 
           <div class=gadget></div>
       </div>
 
@@ -79,7 +83,7 @@
       <div class="row">
             <div class="legend">
                 <img alt="eighths" src="{{ url_for('static', filename='eighth.svg') }}" style="icon">
-          </div>   <!-- display:table-cell -->
+          </div> 
           <div class="slider">
               <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} oninput="send_updates()" >
           </div>
@@ -103,7 +107,7 @@
         <div class="row">
             <div class="legend">
             <img alt="sixteenths" src="{{ url_for('static', filename='sixteenth.svg') }}" style="icon">
-          </div>   <!-- display:table-cell -->
+          </div> 
           <div class="slider">
                 <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} step="any" oninput="send_updates()">
           </div>

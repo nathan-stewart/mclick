@@ -17,16 +17,26 @@ html, body {
 }
 
 .legend {
-  height: 12.5%;
+    @extend .col-md-4;
   text-align: center;
   vertical-align: center;
   display: table-cell;
 }
 
 .slider {
-  height: 50px;
-  vertical-align: middle;
-  display: table-cell;
+    @extend .col-md-4;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.gadget {
+  @extend .col-md-4;
+  height: 15px;
+  text-align: center;
+  vertical-align: center;
+  display: flex;
+  flex-direction:row;
+  align-items:center;
 }
 
 .tempo {
@@ -36,36 +46,28 @@ html, body {
   display: table-cell;
 }
 
-.gadget {
-  text-align: center;
-  vertical-align: center;
-  display: table-cell;
-}
-
-.spin-button {
-  display: flex;
-  height: 12%;
-  align-items: center;
-  padding-right: 10px;
-}
-
-.spin-button__buttons {
-  /* Content is centered vertically */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  /* Left border */
-  border-left: 1px solid #d1d5db;
-}
-
-.spin-button_button {
-  /* Reset */
-  border-color: transparent;
+.up-button, .down-button {
+  display: inline-block;
+  padding: 10px;
+  color: white;
   cursor: pointer;
+  flex-grow:1;
+}
 
-  /* Make buttons have the same height */
-  flex: 1;
+
+.arrow-down, .arrow-up {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+
+.arrow-down {
+  border-top: 10px solid black;
+}
+
+.arrow-up {
+  border-bottom: 10px solid black;
 }
 
 .row {
