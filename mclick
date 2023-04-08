@@ -1,13 +1,13 @@
 #!/bin/bash
 
 EVENTS="MODIFY"
-WATCH_FILES="app.py ticker.py templates/index.html static/*"
+WATCH_FILES="server.py ticker.py templates/index.html static/*"
 
 CONTINUE=1
 
 function get_pid()
 {
-   ps aux| grep "python3 ./app.py" | grep -v "grep" | tr -s ' ' | cut -d' ' -f2
+   ps aux| grep "python3 ./server.py" | grep -v "grep" | tr -s ' ' | cut -d' ' -f2
 }
 
 function kill_servers()
@@ -35,7 +35,7 @@ function ctrl_c() {
 kill_servers
 while [ $CONTINUE -gt 0 ];
 do
-    ./app.py&
+    ./server.py&
     RUNNING=$(get_pid)
     echo "Starting instance $RUNNING"
     inotifywait -q -e $EVENTS $WATCH_FILES 2>&1 >/dev/null
