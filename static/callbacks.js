@@ -1,10 +1,29 @@
 let socket = io();
 let settings = {};
+  
+function set_midi_note(id) {
+  socket.emit("log", "clicked icon button: - dunno which");
+}
+
+function register_icon_callbacks() {
+    var icons = ["icon-measure", "icon-beat", "icon-eighth", "icon-sixteenth"];
+    for (var i = 0; i < icons.length; i++)
+    {
+        id = icons[i];
+        socket.emit("log", "trying to register: ..." + id);
+        icon = document.getElementById(id);
+        if (icon) {
+            socket.emit("log", "got icon: " + icon);
+            i.addEventListener("click", function() { set_midi_note(id); });
+            socket.emit("log", "registered " + id);
+        }
+    }
+}
 
 function myLoad(event)
 {
     if (window.localStorage) {
-        var t0 = Number(window.localStorage['myUnloadEventFlag']);
+        var t0 = Number(window.localStorage["myUnloadEventFlag"]);
         if (isNaN(t0)) t0=0;
         var t1=new Date().getTime();
         var duration=t1-t0;
@@ -19,7 +38,7 @@ function myUnload(event)
 {
     if (window.localStorage) {
         // flag the page as being unloading
-        window.localStorage['myUnloadEventFlag']=new Date().getTime();
+        window.localStorage["myUnloadEventFlag"]=new Date().getTime();
     }
 
     // notify the server that we want to disconnect the user in a few seconds (I used 5 seconds)
@@ -30,6 +49,7 @@ function myUnload(event)
 function set_meter_icon(meter)
 {
   let icon = "/static/" + meter + ".svg";
+  socket.emit("log", "set_meter_icon(" + meter + ")");
   document.getElementById("measure_length_display").src = icon;
 }
 
@@ -54,7 +74,7 @@ function update_tempo_drag()
 
 function meter_clicked(button_id)
 {
-  socket.emit('log', 'clicked meter button: %s' % (event.target));
+  socket.emit("log", "clicked meter button: %s" % (event.target));
   let meters = document.getElementById("measure_options").value.split(",").map(Number);
   let current_meter = parseInt(document.getElementById("measure_length").value);
   let meter_idx = meters.indexOf(current_meter);
@@ -77,15 +97,16 @@ function popup_menu(){
 
 // Close the dropdown menu if the user clicks outside of it
 window.onclick = function(event) {
-  if (!event.target.matches('.dropbtn')) {
-    socket.emit('log', 'click outside: %s' % (event.target));
+  if (!event.target.matches(".dropbtn")) {
     var dropdowns = document.getElementsByClassName("dropdown-content");
     var i;
     for (i = 0; i < dropdowns.length; i++) {
       var openDropdown = dropdowns[i];
-      if (openDropdown.classList.contains('show')) {
-        openDropdown.classList.remove('show');
+      if (openDropdown.classList.contains("show")) {
+        openDropdown.classList.remove("show");
       }
     }
   }
 }
+
+register_icon_callbacks();
