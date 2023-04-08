@@ -52,18 +52,16 @@
         </div>
 
         <div class="gadget">
-          <div class="column">
-              <div class="up-button">
-                  <div class="arrow-up" onclick="meter_clicked(this.id)"  id="meter_up" title="up"></div>
-              </div>
-              <div class="down-button">
-                  <div class="arrow-down" onclick="meter_clicked(this.id)" id="meter_down" title="down"></div>
-              </div>
+          <div class="down-button">
+              <div class="arrow-down" onclick="meter_clicked(this.id)" id="meter_down" title="down"></div>
           </div>
           <img alt="count" id="measure_length_display" >
           <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
           <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
           <script type="text/javascript"> set_meter_icon(4);</script>
+          <div class="up-button">
+              <div class="arrow-up" onclick="meter_clicked(this.id)"  id="meter_up" title="up"></div>
+          </div>
         </div>
       </div>
 
