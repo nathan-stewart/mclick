@@ -9,3 +9,8 @@ It also publishes MIDI clock data to synchronize effects pedals which can receiv
 (so your delay pedal is automatically in sync with the metronome).
 
 Closing the browser stops the metronome.
+
+Requirements:
+
+Bravura Font
+
