@@ -1,0 +1,59 @@
+.title {
+  text-align: center;
+  vertical-align: top;
+  font-size: xx-large;
+}
+
+.col { 
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+}
+
+.header {
+    flex-direction: row;
+    width: 100%;
+    height: 15%;
+}
+
+.row {
+    flex-direction: row;
+    width: 100%;
+    height: 12%;
+    vertical-align: middle;
+}
+
+.lhcol {
+  text-align: right;
+  flex-direction: row;
+  vertical-align: middle;
+  width: 15%;
+  height: 100%;
+  max-width: 100px;
+  margin: 0 5px;
+  border: 1px solid black;
+}
+
+.tempo {
+font-size: xx-large;
+}
+
+.sliderbox{
+  width: 50%;
+  height: 100%;
+  vertical-align: middle;
+  border: 1px solid black;
+  max-width: 200px;
+}
+
+.rhcol {
+  text-align: left;
+  flex-direction: row;
+  vertical-align: middle;
+  width: 15%;
+  height: 100%;
+  max-width: 144px;
+  margin: 0 5px;
+}
+

@@ -1,116 +1,109 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>MidiClick</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-    <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='styles.css') }} ">
-  </head>
-  <body onload="myload()">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
-          integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
-          crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='callbacks.js') }}"></script>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+        <title>MidiClick</title>
+        <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous"-->
+        <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }} ">
+        <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/buttons.css') }} ">
+        <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }} ">
+    </head>
 
-    <div class="container-fluid" >
-      <div class="row" >
-        <!-- https://www.w3schools.com/howto/howto_js_dropdown.asp -->
-        <div class="dropdown">
-          <button onclick="popup_menu()" class="dropbtn" ></button>
-            <div id="config.dropbtn" class="dropdown-content">
-                <a href="#">MIDI Port</a>
-          </div>
-        </div> <!-- cell -->
-        <div class="title">
-          MIDI Click
-        </div>
-      </div>
-    </div> 
+    <body>
+        <div class="col">
+            <!-- Header/Logo -->
+            <div class="header">
+                <div class="title">MClick</div>
+            </div>
 
-    <div class="container-fluid">
+            <!-- Tempo -->
+            <div class="row">
+                <div class="lhcol">
+                    <output class="tempo" id="tempo_output"> {{ parameters.tempo }}</output>
+                </div>
+                <div class="sliderbox">
+                    <input type="range" id="tempo_slider" min=40 max=240 value={{ parameters.tempo }} class="slider" >
+                </div>
+                <div class="rhcol"></div>
+            </div>
 
-      <!-- Tempo -->
-      <div class="row">
-        <div class="tempo">
-          <output class="param_text" id="tempo_output"> {{ parameters.tempo }}</output>
-        </div>
-        <div class="slider">
-            <input type="range" id="tempo_slider" min=40 max=240 value={{ parameters.tempo }} class="slider" oninput="update_tempo_drag()" >
-        </div>
-        <div class="gadget">
-        </div>
-      </div>
+            <!-- Measure -->
+            <div class="row">
+                <div class="lhcol">
+                    <img alt="downbeat" src="{{ url_for('static', filename='img/whole.svg') }}"  id="icon-measure">
+                </div>
 
-      <!-- Measure -->
-      <div class="row">
-        <div class="legend">
-          <img alt="downbeat" src="{{ url_for('static', filename='whole.svg') }}" style="icon" id="icon-measure">
-        </div>
+                <div class="sliderbox">
+                    <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} >
+                </div>
 
-        <div class="slider">
-            <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} oninput="send_updates()">
-        </div>
+                <div class="rhcol">
+                    <div class="left-row">
+                        <button class="down-button">
+                            <div class="arrow-down" id="meter_down" title="down"></div>
+                        </button>
+                        <img alt="count" id="measure_length_display" >
+                        <button class="up-button">
+                            <div class="arrow-up" id="meter_up" title="up"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-        <div class="gadget">
-          <div class="down-button">
-              <div class="arrow-down" onclick="meter_clicked(this.id)" id="meter_down" title="down"></div>
-          </div>
-          <img alt="count" id="measure_length_display" >
-          <input id="measure_length"  type="hidden" readonly value="{{ parameters.beats }}" >
-          <input id="measure_options" type="hidden" readonly value="{{ parameters.measure_options }}" >
-          <script type="text/javascript"> set_meter_icon(4);</script>
-          <div class="up-button">
-              <div class="arrow-up" onclick="meter_clicked(this.id)"  id="meter_up" title="up"></div>
-          </div>
-        </div>
-      </div>
+            <!-- Beat -->
+            <div class="row">
+                <div class="lhcol">
+                    <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}"  id="icon-beat">
+                </div>
+                <div class="sliderbox">
+                <input type="range" min=0 max=127 value={{ parameters.beat }}
+                       class="slider"  id="beat_volume">
+                </div>
+                <div class="rhcol"></div>
+            </div>
 
-      <!-- Beat -->
-      <div class="row">
-          <div class="legend">
-            <img alt="beat" src="{{ url_for('static', filename='quarter.svg') }}" style="icon" id="icon-beat">
-          </div>
-          <div class="slider">
-              <input type="range" min=0 max=127 value={{ parameters.beat }}
-                  class="slider"  id="beat_volume" oninput="send_updates()">
-          </div> 
-          <div class=gadget></div>
-      </div>
+            <!-- Eighths -->
+            <div class="row">
+                <div class="lhcol">
+                    <img alt="eighths" src="{{ url_for('static', filename='img/eighth.svg') }}"  id="icon-eighth">
+                </div>
+                <div class="sliderbox">
+                    <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} >
+                </div>
+                <div class="rhcol"></div>
+            </div>
 
-        <!-- Eights -->
-      <div class="row">
-            <div class="legend">
-                <img alt="eighths" src="{{ url_for('static', filename='eighth.svg') }}" style="icon" id="icon-eighth">
-          </div> 
-          <div class="slider">
-              <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} oninput="send_updates()" >
-          </div>
-          <div class=gadget></div>
-      </div>
+            <!-- Swing -->
+            <div class="row">
+                <div class="lhcol">
+                        <img alt="straight" src="{{ url_for('static', filename='img/straight.svg') }}" >
+                    </div>
+                </div>
 
-      <!-- Swing -->
-      <div class="row">
-          <div class="legend">
-              <img alt="straight" src="{{ url_for('static', filename='straight.svg') }}" style="icon">
-          </div>
-          <div class="slider">
-              <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} oninput="send_updates()" >
-        </div>
-        <div class="gadget">
-            <img alt="swing" src="{{ url_for('static', filename='swing.svg') }}" >
-        </div>
-      </div>
+                <div class="sliderbox">
+                    <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} >
+                </div>
+                <div class="rhcol">
+                    <img alt="swing" src="{{ url_for('static', filename='img/swing.svg') }}" >
+                </div>
+            </div>
 
-        <!-- Sixteenths -->
-        <div class="row">
-            <div class="legend">
-            <img alt="sixteenths" src="{{ url_for('static', filename='sixteenth.svg') }}" style="icon" id="icon-sixteenth">
-          </div> 
-          <div class="slider">
-                <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} step="any" oninput="send_updates()">
-          </div>
-          <div class=gadget></div>
+            <!-- Sixteenths -->
+            <div class="row">
+                <div class="lhcol">
+                    <div class="sliderbox">
+                        <img alt="sixteenths" src="{{ url_for('static', filename='img/sixteenth.svg') }}"  id="icon-sixteenth">
+                    </div>
+                </div>
+                <div class="sliderbox">
+                    <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} >
+                </div>
+                <div class="rhcol"></div>
+            </div>
+            <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
+            <!--script type="text/javascript"> set_meter_icon(4);</script-->
         </div>
-    </div>
-  </body>
+    </body>
 </html>

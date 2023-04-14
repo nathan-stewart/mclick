@@ -1,0 +1,24 @@
+.up-button, .down-button {
+  display: inline-block;
+  padding: 10px;
+  color: white;
+  cursor: pointer;
+  flex-grow:1;
+}
+
+.arrow-down {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 10px solid black;
+}
+
+.arrow-up {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 10px solid black;
+}
+

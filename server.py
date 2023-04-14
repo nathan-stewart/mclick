@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-import eventlet
+import eventlet, sys
 eventlet.monkey_patch()
-
-
 '''
 TODO:
     Finish MIDI configuration:
@@ -10,49 +8,57 @@ TODO:
        * Fix Measure Buttons/graphic
        * Click on icon changes the MIDI note for that subdivision
 '''
-from flask import Flask, render_template, request
+
+from flask import Flask, render_template, request, abort
 from flask_socketio import SocketIO, send, emit
 import ticker, mido, logging
-
-settings = {
-'tempo'           : 60,
-'beats'           :  4,
-'measure'         : 64,
-'beat'            : 48,
-'eighths'         : 24,
-'swing'           :  0,
-'sixteenths'      :  0,
-'measure_options' : "2,3,4,6,9,12",
-'midi_port'       : 'UMC1820:UMC1820 MIDI 1',
-'midi_ports'      : set(mido.get_output_names())
-}
-string_fields = ['measure_options', 'midi_port', 'midi_ports']
+from settings import Settings
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+settings = Settings()
+
+@app.before_first_request
+def check_socketio_server():
+    if not socketio.server:
+        abort(500, 'SocketIO server is not loaded')
+
+@socketio.on('error')
+def handle_render_error(data):
+    abort(500, 'Client side error: ' + {data})
 
 @app.route('/mclick')
 def index():
+    print('page requested')
     return render_template('index.html', parameters=settings)
 
 @socketio.on('connect')
-def on_connect():
+def on_connect(data):
     global settings
+    print('connected')
     ticker.launch(settings)
+
+@socketio.on('fetch_params')
+def on_fetch(data):
+    print('fetch_params')
+    socketio.emit('push_params')
 
 @socketio.on('push_params')
 def on_update(parameters):
     global settings
     # they seem to get converted to strings in the transporter
     for key in parameters.keys():
-        if key in string_fields:
+        if key in ['measure_options', 'midi_port', 'midi_ports']:
             settings[key] = parameters[key]
         else:
             settings[key] = int(parameters[key])
+    print('push_params')
+    print(settings)
     ticker.launch(settings)
 
 @socketio.on('disconnect')
 def on_disconnect():
+    print('disconnect')
     ticker.shutdown()
 
 @socketio.on('log')
@@ -60,4 +66,8 @@ def on_log(msg):
     print('log: ' + str(msg))
 
 if __name__ == "__main__":
-    socketio.run(app, host='0.0.0.0', port=5000)
+    try:
+        socketio.run(app, host='0.0.0.0', port=5000)
+    except:
+        print('Server launch error')
+        sys.exit(-1)
