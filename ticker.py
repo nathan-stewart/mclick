@@ -5,9 +5,8 @@ import time, math, mido, sys
 from settings import Settings
 
 midi_out = None
-window = 5e-3    # 5mS window - if we're later than this value drop it
-stop  = True     # used to exit the thread
-clock = True
+window = 3.0    # 3mS window - if we're later than this value drop it
+stop  = True    # used to exit the thread
 mido.set_backend('mido.backends.rtmidi/LINUX_ALSA')
 OUTPUT_PORT='UMC1820:UMC1820 MIDI 1'
 
@@ -40,29 +39,48 @@ class Events:
         self.events = {}
         self.start_of_measure = time.time() * 1e3 # convert to ms
         self.measure_duration = ms
+
+    def measure_done(self):
+        for k in self.events.keys():
+            if not self.events[k].played:
+                return False
+        self.start_of_measure += self.measure_duration
+        for k in self.events.keys():
+            self.events[k].played = False
          
     def time_to_next_event(self):
-        current_time = time.time() * 1e3
-        elapsed_time = current_time - self.start_of_measure
-        pending = self.measure_duration # something larger than expected values
-        for t in self.events.keys():
+        elapsed_time = time.time() * 1e3 - self.start_of_measure
+
+        # early out if we have no events
+        tsteps = sorted(self.events.keys())
+        if len(tsteps) < 1:
+            return self.measure_duration # nothing to do
+
+        pending = self.measure_duration # initialize to measure duration
+        for t in tsteps:
+            pending = max(0,min(pending, float(t) - elapsed_time))
             event = self.events[t]
-            print('pending: %f, t: %d, elapsed: %f' % (pending, t, elapsed_time))
-            pending = min(pending, float(t) - elapsed_time)
-            if pending <= 1:
-                if not event.played:
-                    for m in event.messages:
-                        midi_out.send(m)
-                    event.played = True
-        if elapsed_time > self.measure_duration:
-            print('measure: %f, elapsed: %f' % (self.measure_duration, elapsed_time))
-            self.start_of_measure = current_time 
-            pending = self.measure_duration
-            for k in self.events.keys():
-                self.events[k].played = False
-            print('End of measure')
-            sys.exit(0)
-        print('pending: %f' %pending)
+            if event.played or elapsed_time >= t + window:
+                # either already played or we missed the window
+                continue
+
+            if pending > window:
+                break
+
+            if not event.played and elapsed_time >= float(t):
+                event.played = True
+                for m in event.messages:
+                    midi_out.send(m)
+
+                played = ''
+                for p in tsteps:
+                   if self.events[p].played:
+                       played += 'Y ' 
+                   else:
+                        played += 'N '
+        
+        if self.measure_done():
+            pending = self.measure_duration - elapsed_time
         return pending
 
 
@@ -72,7 +90,6 @@ def update_settings(params):
     global events
     global settings
     global midi_out
-    global clock
 
     settings = params
     def valid_midi_port(port):
@@ -92,7 +109,7 @@ def update_settings(params):
     events[0].add_message(mido.Message('note_on', channel=9, note=settings.measure.note, velocity=settings.measure.volume))
 
     for b in range(settings.num_beats):
-        if clock:
+        if settings.clock:
             for n in range(24):
                 tn = int(b * beat_ms + n * beat_ms/ 24)
                 events[tn].add_message(mido.Message('clock'))
@@ -114,7 +131,7 @@ def update_settings(params):
                 events[tn].add_message(mido.Message('note_on', channel=9, note=settings.sixteenths.note, velocity=settings.sixteenths.volume))
     
     if midi_out:
-        if clock:
+        if settings.clock:
             midi_out.send(mido.Message('stop'))
 
         # check before we close to see if it changed
@@ -125,27 +142,25 @@ def update_settings(params):
 
     if (valid_midi_port(settings.midi_port)):
         midi_out = mido.open_output(settings.midi_port)
-        clock = settings.clock
     else:
         print('Could not find MIDI output port: ', settings.midi_port, ' in ', settings.midi_ports)
-        clock = False
-    if clock:
+    if settings.clock:
         midi_out.send(mido.Message('start'))
 
 def Ticker():
     global stop
     global settings
     global events
-    global clock
     global midi_out 
 
-    while not stop:
-        if not midi_out:
+    if not midi_out:
+        while not stop:
             time.sleep(0.1) # we're not doing anything but want to be responsive to changes
-        else:
-            snooze = events.time_to_next_event()
-            if snooze > window:
-                time.sleep(snooze - window)
+    while not stop:
+        snooze = events.time_to_next_event()
+        if snooze > window:
+            delay = snooze - window
+            time.sleep(delay/1e3)
 
 scheduler = None
 stop = True
