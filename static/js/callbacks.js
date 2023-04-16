@@ -5,62 +5,55 @@ function set_midi_note(event) {
   console.log("clicked icon button: " + event.target.id);
 }
 
-function set_meter_icon(meter)
-{
-  console.log("set_meter_icon: begin");
-  let icon = "/static/img" + meter + ".svg";
-  document.getElementById("measure_length_display").src = icon;
-  //send_updates();
-  console.log("set_meter_icon: end");
-}
-
 function send_updates()
 {
-  settings.tempo             = parseInt(document.getElementById("tempo_output").value);
-  settings.measure.volume    = parseInt(document.getElementById("measure_volume").value);
-  settings.beat.volume       = parseInt(document.getElementById("beat_volume").value);
-  settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
-  settings.swing             = parseInt(document.getElementById("swing_value").value);
-  settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
-  console.log("send_updates: end");
+    settings.tempo             = parseInt(document.getElementById("tempo_output").value);
+    settings.measure.volume    = parseInt(document.getElementById("measure_volume").value);
+    settings.beat.volume       = parseInt(document.getElementById("beat_volume").value);
+    settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
+    settings.swing             = parseInt(document.getElementById("swing_value").value);
+    settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
+    console.log("send_updates: end");
 }
 
 socket.on('update', function(data) {
-  console.log("on_update: begin");
-  console.log(data);
-  console.log("on_update: end");
+    console.log("on_update: begin");
 });
 
 function on_change(event)
 {
     console.log("on_change: " + event.target.id)
     send_updates();
-  console.log("on_change: end");
 }
 
 function update_tempo_drag(event)
 {
-  let tempo_val = document.getElementById("tempo_slider").value.padEnd(3);
-  document.getElementById("tempo_output").value = document.getElementById("tempo_slider").value;
+    drag_value = document.getElementById("tempo_slider").value;
+    document.getElementById("tempo_output").value = drag_value;
+    // don't send it here - that will happen in on_change
 }
 
 function meter_clicked(event)
 {
-    console.log("meter_clicked: " + settings);
-    let meters = settings['measure_options'];
+    let button_id = event.target.id;
+    let meters = settings.measure_options;
     let current_meter = settings.num_beats;
     let meter_idx = meters.indexOf(current_meter);
 
     if (button_id == "meter_up" && (meter_idx < meters.length - 1))
     {
         meter_idx += 1;
+        console.log(event.target.id + " meter: " + 
+            meters[meter_idx] + " " + meter_idx + " of " + meters);
     } else if (button_id == "meter_down" && meter_idx > 0)
     {
         meter_idx -= 1;
+        console.log(event.target.id + " meter: " + meters[meter_idx] 
+            + " " + meter_idx + " of " + meters);
     }
-    document.getElementById("measure_length").value = parseInt(meters[meter_idx]);
-    set_meter_icon(meters[meter_idx]);
-    console.log("meter_clicked: end");
+    settings.num_beats = parseInt(meters[meter_idx]);
+    document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+    console.log("Meter Graphic is now " + document.getElementById("measure_length").src);
 }
 
 function popup_menu(){
@@ -85,6 +78,33 @@ window.onclick = function(event) {
 
 function myLoad(event)
 {
+    document.getElementById("meter_up").addEventListener("click", meter_clicked);
+    document.getElementById("meter_down").addEventListener("click", meter_clicked);
+
+    document.getElementById("icon-measure").addEventListener("click", set_midi_note);
+    document.getElementById("icon-beat").addEventListener("click", set_midi_note);
+    document.getElementById("icon-eighth").addEventListener("click", set_midi_note);
+    document.getElementById("icon-sixteenth").addEventListener("click", set_midi_note);
+    
+    document.getElementById("tempo_slider").addEventListener("input", update_tempo_drag);
+
+    document.getElementById("tempo_slider").addEventListener("change", on_change);
+    document.getElementById("measure_volume").addEventListener("change", on_change);
+    document.getElementById("beat_volume").addEventListener("change", on_change);
+    document.getElementById("eighth_volume").addEventListener("change", on_change);
+    document.getElementById("swing_value").addEventListener("change", on_change);
+    document.getElementById("sixteenth_volume").addEventListener("change", on_change);
+    
+    document.getElementById("tempo_slider").value = settings.tempo;
+    document.getElementById("tempo_output").value = settings.tempo;
+    document.getElementById("measure_volume").value = settings.measure.volume;
+    document.getElementById("beat_volume").value = settings.beat.volume; 
+    document.getElementById("eighth_volume").value = settings.eighths.volume;
+    document.getElementById("swing_value").value = settings.swing;
+    document.getElementById("sixteenth_volume").value = settings.sixteenths.volume;
+
+    document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+
     if (window.localStorage) {
         var t0 = Number(window.localStorage["myUnloadEventFlag"]);
         if (isNaN(t0)) t0=0;
@@ -108,50 +128,4 @@ function myUnload(event)
     askServerToDisconnectUserInAFewSeconds(); // synchronous AJAX call
 }
 
-
-function register_icon_callbacks() {
-    var icons = ["icon-measure", "icon-beat", "icon-eighth", "icon-sixteenth"];
-    for (var i = 0; i < icons.length; i++)
-    {
-        id = icons[i];
-        icon = document.getElementById(id);
-        if (icon) {
-            icon.addEventListener("click", set_midi_note);
-        }
-    }
-}
-
-function register_slider_callbacks() {
-    var sliders = ["tempo_slider", "measure_volume", "beat_volume", "eighth_volume", "swing_value", "sixteenth_volume"];
-    for (var i = 0; i < sliders.length; i++)
-    {
-        id = sliders[i];
-        slider = document.getElementById(id);
-        if (slider) {
-            slider.addEventListener("change", on_change);
-        }
-    }
-}
-
-function register_meter_callbacks() {
-    var buttons = ["meter_up", "meter_down"];
-    for (var i = 0; i < buttons.length; i++)
-    {
-        id = buttons[i];
-        button = document.getElementById(id);
-        if (button) {
-            button.addEventListener("click", meter_clicked);
-        }
-    }
-}
-
 window.addEventListener("load", myLoad);
-tempo_slider = document.getElementById("tempo_slider");
-if (tempo_slider) {
-    tempo_slider.addEventListener("input", update_tempo_drag);
-}
-
-register_icon_callbacks();
-register_slider_callbacks();
-register_meter_callbacks();
-
