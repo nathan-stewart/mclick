@@ -1,10 +1,11 @@
 .title {
-  text-align: center;
-  vertical-align: top;
-  font-size: xx-large;
+    text-align: center;
+    vertical-align: top;
+    font-size: xx-large;
 }
 
-.col { 
+.entries{ 
+    display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
@@ -12,48 +13,40 @@
 }
 
 .header {
-    flex-direction: row;
+    display: flex;
+    align-items: center;
     width: 100%;
     height: 15%;
 }
 
 .row {
-    flex-direction: row;
+    display: flex;
+    align-items: center;
     width: 100%;
     height: 12%;
     vertical-align: middle;
 }
 
-.lhcol {
-  text-align: right;
-  flex-direction: row;
-  vertical-align: middle;
-  width: 15%;
-  height: 100%;
-  max-width: 100px;
-  margin: 0 5px;
-  border: 1px solid black;
+.legend {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    margin: 10px;
 }
 
 .tempo {
-font-size: xx-large;
+    font-size: xx-large;
 }
 
 .sliderbox{
-  width: 50%;
-  height: 100%;
-  vertical-align: middle;
-  border: 1px solid black;
-  max-width: 200px;
+    display: flex;
+    align-items: center;
 }
 
-.rhcol {
-  text-align: left;
-  flex-direction: row;
-  vertical-align: middle;
-  width: 15%;
-  height: 100%;
-  max-width: 144px;
-  margin: 0 5px;
+.gadget{
+    display: flex;
+    align-items: center;
+    width: 15%;
+    max-width: 144px;
 }
 
