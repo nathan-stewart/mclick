@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass, field
 import mido
+import json
 
 def create_default_ports() -> list[str]:
     return list(set(mido.get_output_names()))
@@ -20,6 +21,13 @@ class Note:
     def __hash__(self):
         return hash(repr(self))
 
+    def toJSON(self):
+        dumpable = {}
+        for k in self.__dict__.keys():
+            dumpable[k] = json.dumps(self.__dict__[k])
+        return dumpable 
+
+
 @dataclass
 class Settings:
     midi_port       : str = 'UMC1820:UMC1820 MIDI 1'
@@ -32,5 +40,14 @@ class Settings:
     eighths         : Note = Note(51, 31)
     swing           : float = 10.0
     sixteenths      : Note = Note(42, 15)
-    clock           : bool = True
+    clock           : bool = False
 
+    def toJSON(self):
+        dumpable = {}
+        for k in self.__dict__.keys():
+            value = self.__dict__[k]
+            if isinstance(value, Note):
+                dumpable[k] = value.toJSON()
+            else:
+                dumpable[k] = value
+        return dumpable 
