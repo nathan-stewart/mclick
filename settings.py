@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass, field
-import mido
-import json
+import mido, re, json
 
 def create_default_ports() -> list[str]:
     return list(set(mido.get_output_names()))
@@ -50,4 +49,4 @@ class Settings:
                 dumpable[k] = value.toJSON()
             else:
                 dumpable[k] = value
-        return dumpable 
+        return json.dumps(dumpable, ensure_ascii=False, indent=4)

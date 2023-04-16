@@ -1,51 +1,52 @@
 var socket = io();
-var settings = {};
+var settings = JSON.parse(document.getElementById('settings-data').getAttribute('data'));
 
 function set_midi_note(event) {
-  socket.emit("log", "clicked icon button: " + event.target.id);
+  console.log("clicked icon button: " + event.target.id);
 }
 
 function set_meter_icon(meter)
 {
+  console.log("set_meter_icon: begin");
   let icon = "/static/img" + meter + ".svg";
   document.getElementById("measure_length_display").src = icon;
   //send_updates();
+  console.log("set_meter_icon: end");
 }
 
 function send_updates()
 {
-  socket.emit("log: send_updates: " + settings);
   settings.tempo             = parseInt(document.getElementById("tempo_output").value);
-  settings.num_beats         = parseInt(document.getElementById("measure_length").value);
   settings.measure.volume    = parseInt(document.getElementById("measure_volume").value);
   settings.beat.volume       = parseInt(document.getElementById("beat_volume").value);
   settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
   settings.swing             = parseInt(document.getElementById("swing_value").value);
   settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
-  socket.emit("push_params", settings);
+  console.log("send_updates: end");
 }
 
 socket.on('update', function(data) {
-    //socket.emit("log", "update parameters: " + data);
-    settings = data;
+  console.log("on_update: begin");
+  console.log(data);
+  console.log("on_update: end");
 });
 
 function on_change(event)
 {
-    socket.emit("log", "on_change")
-    //send_updates();
+    console.log("on_change: " + event.target.id)
+    send_updates();
+  console.log("on_change: end");
 }
 
 function update_tempo_drag(event)
 {
-  socket.emit("log", "update_tempo_drag")
   let tempo_val = document.getElementById("tempo_slider").value.padEnd(3);
   document.getElementById("tempo_output").value = document.getElementById("tempo_slider").value;
 }
 
 function meter_clicked(event)
 {
-    socket.emit("log", "meter_clicked: " + settings);
+    console.log("meter_clicked: " + settings);
     let meters = settings['measure_options'];
     let current_meter = settings.num_beats;
     let meter_idx = meters.indexOf(current_meter);
@@ -59,10 +60,13 @@ function meter_clicked(event)
     }
     document.getElementById("measure_length").value = parseInt(meters[meter_idx]);
     set_meter_icon(meters[meter_idx]);
+    console.log("meter_clicked: end");
 }
 
 function popup_menu(){
+    console.log("popup_menu: begin");
     document.getElementById("config-dropbtn").classList.toggle("show");
+    console.log("popup_menu: end");
 }
 
 // Close the dropdown menu if the user clicks outside of it
@@ -118,7 +122,7 @@ function register_icon_callbacks() {
 }
 
 function register_slider_callbacks() {
-    var sliders = ["tempo_slider", "measure_volume", "beat_volume", "eight_volume", "swing_value", "sixteenth_volume"];
+    var sliders = ["tempo_slider", "measure_volume", "beat_volume", "eighth_volume", "swing_value", "sixteenth_volume"];
     for (var i = 0; i < sliders.length; i++)
     {
         id = sliders[i];

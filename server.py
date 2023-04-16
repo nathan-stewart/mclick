@@ -29,23 +29,18 @@ def handle_render_error(data):
 
 @app.route('/mclick')
 def index():
-    print('page requested')
-    return render_template('index.html', parameters=settings)
+    return render_template('index.html', parameters=settings.toJSON())
 
 @socketio.on('connect')
-def on_connect(data):
-    global settings
-    print('connected')
-    ticker.launch(settings)
-
-@socketio.on('fetch_params')
-def on_fetch(data):
-    print('fetch_params')
-    socketio.emit('push_params')
+def on_connect():
+    #print('connected')
+    ticker.launch()
 
 @socketio.on('push_params')
 def on_update(parameters):
     global settings
+    print('push_params')
+    print(settings)
     # they seem to get converted to strings in the transporter
     for key in parameters.keys():
         if key in ['measure_options', 'midi_port', 'midi_ports']:
@@ -53,8 +48,8 @@ def on_update(parameters):
         else:
             settings[key] = int(parameters[key])
     print('push_params')
-    print(settings)
-    ticker.launch(settings)
+    socketio.emit('update', settings.toJSON())
+    ticker.update_settings(settings)
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -67,7 +62,7 @@ def on_log(msg):
 
 if __name__ == "__main__":
     try:
-        socketio.run(app, host='0.0.0.0', port=5000)
+        socketio.run(app, host='0.0.0.0', port=5000,use_reloader=False)
     except:
         print('Server launch error')
         sys.exit(-1)

@@ -88,18 +88,12 @@ events = Events()
 
 def update_settings(params):
     global events
-    global settings
     global midi_out
 
     settings = params
     def valid_midi_port(port):
         return port and any (port in port_found for port_found in settings.midi_ports)
 
-    # I think this decision for when to play stuff is not performing well at higher tempos
-    # it doesn't really change between updates - so on parameter update, compute a new table of 
-    # timesteps and messages to play - ideally volume changes shouldn't change the beat being played
-    # but a tempo or measure change needs to start on a downbeat
-    
     beat_ms = 60.0e+3/ float(params.tempo)
     measure_duration = beat_ms * params.num_beats 
     # Build the Table of events for an entire measure
@@ -149,7 +143,6 @@ def update_settings(params):
 
 def Ticker():
     global stop
-    global settings
     global events
     global midi_out 
 
