@@ -8,6 +8,14 @@
         <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }} ">
         <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/buttons.css') }} ">
         <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }} ">
+
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+        <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+        <meta name="msapplication-TileColor" content="#ffffff">
+        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+        <meta name="theme-color" content="#ffffff">
     </head>
 
     <body>
@@ -20,87 +28,84 @@
 
             <!-- Tempo -->
             <div class="row">
-                <div class="lhcol">
-                    <output class="tempo" id="tempo_output"> {{ parameters.tempo }}</output>
+                <div class="legend">
+                    <output class="tempo" id="tempo_output"></output>
                 </div>
                 <div class="sliderbox">
-                    <input type="range" id="tempo_slider" min=40 max=240 value={{ parameters.tempo }} class="slider" >
+                    <input type="range" id="tempo_slider" min=40 max=240 class="slider" >
                 </div>
-                <div class="rhcol"></div>
+                <div class="gadget"></div>
             </div>
 
             <!-- Measure -->
             <div class="row">
-                <div class="lhcol">
+                <div class="legend">
                     <img alt="downbeat" src="{{ url_for('static', filename='img/whole.svg') }}"  id="icon-measure">
                 </div>
 
                 <div class="sliderbox">
-                    <input class="slider" id="measure_volume" type="range" min=0 max=127 value={{ parameters.measure }} >
+                    <input class="slider" id="measure_volume" type="range" min=0 max=127>
                 </div>
 
-                <div class="rhcol">
-                    <div class="left-row">
-                        <button class="down-button">
-                            <div class="arrow-down" id="meter_down" title="down"></div>
-                        </button>
-                        <img alt="count" id="measure_length_display" >
-                        <button class="up-button">
-                            <div class="arrow-up" id="meter_up" title="up"></div>
-                        </button>
-                    </div>
+                <div class="gadget">
+                    <button class="down-button">
+                        <div class="arrow-down" id="meter_down" title="down"></div>
+                    </button>
+                    <img alt="count" id="measure_length" >
+                    <button class="up-button">
+                        <div class="arrow-up" id="meter_up" title="up"></div>
+                    </button>
                 </div>
             </div>
 
             <!-- Beat -->
             <div class="row">
-                <div class="lhcol">
+                <div class="legend">
                     <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}"  id="icon-beat">
                 </div>
                 <div class="sliderbox">
-                <input type="range" min=0 max=127 value={{ parameters.beat }}
-                       class="slider"  id="beat_volume">
+                <input type="range" min=0 max=127 class="slider"  id="beat_volume">
                 </div>
-                <div class="rhcol"></div>
+                <div class="gadget"></div>
             </div>
 
             <!-- Eighths -->
             <div class="row">
-                <div class="lhcol">
+                <div class="legend">
                     <img alt="eighths" src="{{ url_for('static', filename='img/eighth.svg') }}"  id="icon-eighth">
                 </div>
                 <div class="sliderbox">
-                    <input class="slider"  id="eighth_volume" type="range" min=0 max=127 value={{ parameters.eighths }} >
+                    <input class="slider"  id="eighth_volume" type="range" min=0 max=127 >
                 </div>
-                <div class="rhcol"></div>
+                <div class="gadget"></div>
             </div>
 
             <!-- Swing -->
             <div class="row">
-                <div class="lhcol">
+                <div class="legend">
                         <img alt="straight" src="{{ url_for('static', filename='img/straight.svg') }}" >
                     </div>
                 </div>
 
                 <div class="sliderbox">
-                    <input class="slider" id="swing_value" type="range" min=0 max=100 value={{ parameters.swing }} >
+                    <input class="slider" id="swing_value" type="range" min=0 max=100 >
                 </div>
-                <div class="rhcol">
+                <div class="gadget">
                     <img alt="swing" src="{{ url_for('static', filename='img/swing.svg') }}" >
                 </div>
             </div>
 
             <!-- Sixteenths -->
             <div class="row">
-                <div class="lhcol">
+                <div class="legend">
                     <div class="sliderbox">
                         <img alt="sixteenths" src="{{ url_for('static', filename='img/sixteenth.svg') }}"  id="icon-sixteenth">
                     </div>
                 </div>
                 <div class="sliderbox">
-                    <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 value={{ parameters.sixteenths }} >
+                    <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 >
                 </div>
-                <div class="rhcol"></div>
+                <div class="gadget"></div>
             </div>
             <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
             <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
