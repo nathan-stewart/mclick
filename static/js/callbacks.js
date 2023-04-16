@@ -43,17 +43,12 @@ function meter_clicked(event)
     if (button_id == "meter_up" && (meter_idx < meters.length - 1))
     {
         meter_idx += 1;
-        console.log(event.target.id + " meter: " + 
-            meters[meter_idx] + " " + meter_idx + " of " + meters);
     } else if (button_id == "meter_down" && meter_idx > 0)
     {
         meter_idx -= 1;
-        console.log(event.target.id + " meter: " + meters[meter_idx] 
-            + " " + meter_idx + " of " + meters);
     }
     settings.num_beats = parseInt(meters[meter_idx]);
     document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
-    console.log("Meter Graphic is now " + document.getElementById("measure_length").src);
 }
 
 function popup_menu(){
