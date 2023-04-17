@@ -13,7 +13,9 @@ function send_updates()
     settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
     settings.swing             = parseInt(document.getElementById("swing_value").value);
     settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
-    console.log("send_updates: end");
+    console.log("Sent update_from_gui");
+    console.log(settings);
+    socket.emit("update_from_gui", settings);
 }
 
 socket.on('update', function(data) {

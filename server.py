@@ -12,11 +12,11 @@ TODO:
 from flask import Flask, render_template, request, abort
 from flask_socketio import SocketIO, send, emit
 import ticker, mido, logging
-from settings import Settings
+from settings import settings
+import json
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-settings = Settings()
 
 @app.before_first_request
 def check_socketio_server():
@@ -29,26 +29,18 @@ def handle_render_error(data):
 
 @app.route('/mclick')
 def index():
-    return render_template('index.html', parameters=settings.toJSON())
+    return render_template('index.html', parameters=json.dumps(settings))
 
 @socketio.on('connect')
 def on_connect():
     #print('connected')
     ticker.launch()
 
-@socketio.on('push_params')
+@socketio.on('update_from_gui')
 def on_update(parameters):
     global settings
-    print('push_params')
-    print(settings)
-    # they seem to get converted to strings in the transporter
-    for key in parameters.keys():
-        if key in ['measure_options', 'midi_port', 'midi_ports']:
-            settings[key] = parameters[key]
-        else:
-            settings[key] = int(parameters[key])
-    print('push_params')
-    socketio.emit('update', settings.toJSON())
+    print('update_from_gui')
+    print(parameters)
     ticker.update_settings(settings)
 
 @socketio.on('disconnect')

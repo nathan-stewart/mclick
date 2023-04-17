@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from threading import Thread
 import time, math, mido, sys
-from settings import Settings
+from settings import settings
 
 midi_out = None
 window = 3.0    # 3mS window - if we're later than this value drop it
@@ -92,53 +92,53 @@ def update_settings(params):
 
     settings = params
     def valid_midi_port(port):
-        return port and any (port in port_found for port_found in settings.midi_ports)
+        return port and any (port in port_found for port_found in settings['midi_ports'])
 
-    beat_ms = 60.0e+3/ float(params.tempo)
-    measure_duration = beat_ms * params.num_beats 
+    beat_ms = 60.0e+3/ float(settings['tempo'])
+    measure_duration = beat_ms * settings['num_beats']
     # Build the Table of events for an entire measure
     # key is the time delta in milliseconds after the start of the measure
     events.clear(measure_duration)
 
-    events[0].add_message(mido.Message('note_on', channel=9, note=settings.measure.note, velocity=settings.measure.volume))
+    events[0].add_message(mido.Message('note_on', channel=9, note=settings['measure']['note'], velocity=settings['measure']['volume']))
 
-    for b in range(settings.num_beats):
-        if settings.clock:
+    for b in range(settings['num_beats']):
+        if settings['clock']:
             for n in range(24):
                 tn = int(b * beat_ms + n * beat_ms/ 24)
                 events[tn].add_message(mido.Message('clock'))
 
         t0 = int(b * beat_ms)
-        if settings.beat.volume > 0:
-            events[t0].add_message(mido.Message('note_on', channel=9, note=settings.beat.note, velocity=settings.beat.volume))
-        if settings.eighths.volume > 0:
-            events[t0].add_message(mido.Message('note_on', channel=9, note=settings.eighths.note, velocity=settings.eighths.volume))
+        if settings['beat']['volume'] > 0:
+            events[t0].add_message(mido.Message('note_on', channel=9, note=settings['beat']['note'], velocity=settings['beat']['volume']))
+        if settings['eighths']['volume'] > 0:
+            events[t0].add_message(mido.Message('note_on', channel=9, note=settings['eighths']['note'], velocity=settings['eighths']['volume']))
             
             # 2nd eighth may be swung
-            t1 = int(t0 + beat_ms * (0.5 + settings.swing/200.0))  # range goes from 0 = half of a beat to 100 = all the way on the next beat
+            t1 = int(t0 + beat_ms * (0.5 + settings['swing']/200.0))  # range goes from 0 = half of a beat to 100 = all the way on the next beat
                                                              # the slider shouldn't allow 100, but hard swing can be above 90% and this
                                                              # makes the math more clear
-            events[t1].add_message(mido.Message('note_on', channel=9, note=settings.eighths.note, velocity=settings.eighths.volume))
-        if settings.sixteenths.volume > 0:
+            events[t1].add_message(mido.Message('note_on', channel=9, note=settings['eighths']['note'], velocity=settings['eighths']['volume']))
+        if settings['sixteenths']['volume'] > 0:
             for n in range(4):
                 tn = int(b * beat_ms + n * beat_ms / 4)
-                events[tn].add_message(mido.Message('note_on', channel=9, note=settings.sixteenths.note, velocity=settings.sixteenths.volume))
+                events[tn].add_message(mido.Message('note_on', channel=9, note=settings['sixteenths']['note'], velocity=settings['sixteenths']['volume']))
     
     if midi_out:
-        if settings.clock:
+        if settings['clock']:
             midi_out.send(mido.Message('stop'))
 
         # check before we close to see if it changed
-        if params.midi_port not in str(midi_out):
-            print('Setting MIDI output port to: ' + params.midi_port)
+        if settings['midi_port'] not in str(midi_out):
+            print('Setting MIDI output port to: ' + settings['midi_port'])
         midi_out.close()
         midi_out = None
 
-    if (valid_midi_port(settings.midi_port)):
-        midi_out = mido.open_output(settings.midi_port)
+    if (valid_midi_port(settings['midi_port'])):
+        midi_out = mido.open_output(settings['midi_port'])
     else:
-        print('Could not find MIDI output port: ', settings.midi_port, ' in ', settings.midi_ports)
-    if settings.clock:
+        print('Could not find MIDI output port: ', settings['midi_port'], ' in ', settings['midi_ports'])
+    if settings['clock']:
         midi_out.send(mido.Message('start'))
 
 def Ticker():
@@ -162,7 +162,7 @@ def launch():
     global stop
     global scheduler
 
-    update_settings(Settings())        
+    update_settings(settings)        
 
     if not scheduler:
         scheduler = Thread(target=Ticker)
