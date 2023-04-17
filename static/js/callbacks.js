@@ -35,6 +35,8 @@ function update_tempo_drag(event)
 
 function meter_clicked(event)
 {
+    console.log(event.target.id + " clicked: old meter = " +
+        document.getElementById("measure_length").src);
     let button_id = event.target.id;
     let meters = settings.measure_options;
     let current_meter = settings.num_beats;
@@ -49,6 +51,8 @@ function meter_clicked(event)
     }
     settings.num_beats = parseInt(meters[meter_idx]);
     document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+    console.log(event.target.id + " clicked: New meter = " 
+        + document.getElementById("measure_length").src);
 }
 
 function popup_menu(){

@@ -4,6 +4,25 @@
     font-size: xx-large;
 }
 
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    height: 20%;
+}
+
+.html {
+    height: 100vh; 
+    width: 100vw;
+}
+
+.body {
+    width: 100%;
+    height: 100%;
+    margin: 25px 100px 100px 100px;
+}
+
 .entries{ 
     display: flex;
     flex-direction: column;
@@ -12,25 +31,20 @@
     margin: 0px;
 }
 
-.header {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 15%;
-}
-
 .row {
     display: flex;
     align-items: center;
     width: 100%;
-    height: 12%;
+    height: 13%;
     vertical-align: middle;
 }
 
 .legend {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
+    justify-content: flex-end;
     height: 100%;
+    width: 30%;
     margin: 10px;
 }
 
@@ -40,13 +54,17 @@
 
 .sliderbox{
     display: flex;
-    align-items: center;
+    align-items: flex-end;
+    justify-content: center;
+    width: 40%;
+    max-width: 350px;
 }
 
 .gadget{
     display: flex;
     align-items: center;
-    width: 15%;
-    max-width: 144px;
+    justify-content: flex-start;
+    width: 30%;
+    margin: 10px;
 }
 

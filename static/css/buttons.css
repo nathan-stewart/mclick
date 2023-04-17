@@ -3,7 +3,11 @@
   padding: 10px;
   color: white;
   cursor: pointer;
-  flex-grow:1;
+  flex-grow:0;
+  max-height: 48px;
+  max-width: 48px;
+  aspect-ratio: 1/1;
+  box-sizing: border-box; /* Add box-sizing property */
 }
 
 .arrow-down {
@@ -12,6 +16,9 @@
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-right: 10px solid black;
+  pointer-events:none;
+  display: flex;
+  justify-content: center;
 }
 
 .arrow-up {
@@ -20,5 +27,8 @@
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-left: 10px solid black;
+  pointer-events:none;
+  display: flex;
+  justify-content: center;
 }
 
