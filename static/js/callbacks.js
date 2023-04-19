@@ -13,9 +13,8 @@ function send_updates()
     settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
     settings.swing             = parseInt(document.getElementById("swing_value").value);
     settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
-    console.log("Sent update_from_gui");
-    console.log(settings);
     socket.emit("update_from_gui", settings);
+    console.log("Sent update_from_gui");
 }
 
 socket.on('update', function(data) {
@@ -96,6 +95,7 @@ function myLoad(event)
     document.getElementById("swing_value").addEventListener("change", on_change);
     document.getElementById("sixteenth_volume").addEventListener("change", on_change);
     
+    // update sliders
     document.getElementById("tempo_slider").value = settings.tempo;
     document.getElementById("tempo_output").value = settings.tempo;
     document.getElementById("measure_volume").value = settings.measure.volume;
@@ -103,8 +103,8 @@ function myLoad(event)
     document.getElementById("eighth_volume").value = settings.eighths.volume;
     document.getElementById("swing_value").value = settings.swing;
     document.getElementById("sixteenth_volume").value = settings.sixteenths.volume;
-
     document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+
 
     if (window.localStorage) {
         var t0 = Number(window.localStorage["myUnloadEventFlag"]);

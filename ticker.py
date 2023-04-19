@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass
-from threading import Thread
+import threading
 import time, math, mido, sys
 from settings import settings
 
-midi_out = None
 window = 3.0    # 3mS window - if we're later than this value drop it
-stop  = True    # used to exit the thread
-mido.set_backend('mido.backends.rtmidi/LINUX_ALSA')
-OUTPUT_PORT='UMC1820:UMC1820 MIDI 1'
 
 @dataclass
-class Event:
+class TickerEvent:
     messages    : list[mido.messages.messages.Message]
     played      : bool
 
@@ -25,14 +21,16 @@ class Event:
         self.messages.append(m)
 
 class Events:
-    def __init__(self):
+    def __init__(self, midi):
         self.events = {}
+        self.midi_out = midi
         self.last_measure = time.time() * 1e3
         self.measure_duration = 0
+        self.elapsed_time = self.last_measure
 
     def __getitem__(self, index):
         if index not in self.events.keys():
-            self.events[index] = Event()
+            self.events[index] = TickerEvent()
         return self.events[index]
 
     def clear(self, ms):
@@ -40,151 +38,148 @@ class Events:
         self.start_of_measure = time.time() * 1e3 # convert to ms
         self.measure_duration = ms
 
-    def measure_done(self):
-        for k in self.events.keys():
-            if not self.events[k].played:
-                return False
-        self.start_of_measure += self.measure_duration
+    def reset_played(self):
         for k in self.events.keys():
             self.events[k].played = False
+
+    def check_measure_done(self, force = False):
+        if force:
+            self.reset_played()
+            self.start_of_measure = time.time() * 1e3
+            return 0
+
+        # if we have wrapped a measure, back out the measure time from elapsed
+        if self.elapsed_time > self.measure_duration:
+            self.reset_played()
+            while self.elapsed_time > self.measure_duration:
+                self.elapsed_time -= self.measure_duration
+
+        # if all events have been played, return remaining time
+        measure_finished = True
+        for k in self.events.keys():
+            if not self.events[k].played:
+                measure_finished = False
+                break
+
+        if all([self.events[k].played for k in self.events.keys()]):
+        
+            self.start_of_measure += self.measure_duration
+            self.reset_played()
+            pending = self.measure_duration - self.elapsed_time
+            return pending
+        return 0
+
          
     def time_to_next_event(self):
-        elapsed_time = time.time() * 1e3 - self.start_of_measure
-
+        self.elapsed_time = time.time() * 1e3 - self.start_of_measure
+    
         # early out if we have no events
         tsteps = sorted(self.events.keys())
         if len(tsteps) < 1:
             return self.measure_duration # nothing to do
-
+        
         pending = self.measure_duration # initialize to measure duration
         for t in tsteps:
-            pending = max(0,min(pending, float(t) - elapsed_time))
+            pending = max(0,min(pending, float(t) - self.elapsed_time))
             event = self.events[t]
-            if event.played or elapsed_time >= t + window:
+            if event.played or self.elapsed_time >= t + window:
                 # either already played or we missed the window
                 continue
 
             if pending > window:
                 break
 
-            if not event.played and elapsed_time >= float(t):
+            if not event.played and self.elapsed_time >= float(t):
                 event.played = True
                 for m in event.messages:
-                    midi_out.send(m)
+                    self.midi_out.send(m)
+                    pass
 
-                played = ''
-                for p in tsteps:
-                   if self.events[p].played:
-                       played += 'Y ' 
-                   else:
-                        played += 'N '
-        
-        if self.measure_done():
-            pending = self.measure_duration - elapsed_time
+        pending = max(pending, self.check_measure_done())
         return pending
 
 
-events = Events()
+class Ticker(threading.Thread):
+    def open_midi_port(self):
+        port = self.settings['midi_port']
+        found = any (port in listed for listed in mido.get_output_names()) 
+        if port and found:
+            self.midi_out = mido.open_output(port)
+        
+    def midi_stop(self):
+        self.midi_out.send(mido.Message('stop'))
+        self.midi_out.panic()
+        self.midi_out.close()
+        self.midi_out = None
 
-def update_settings(params):
-    global events
-    global midi_out
+    def __init__(self, params):
+        super().__init__()
+        self.stopping = threading.Event()
+        self.settings = params 
+        mido.set_backend(self.settings['midi_backend'])
+        self.open_midi_port()
+        self.events = Events(self.midi_out) 
+        self.build_event_table()
 
-    settings = params
-    def valid_midi_port(port):
-        return port and any (port in port_found for port_found in settings['midi_ports'])
+    def stop(self):
+        print('ticker:stop()')
+        self.stopping.set()
 
-    beat_ms = 60.0e+3/ float(settings['tempo'])
-    measure_duration = beat_ms * settings['num_beats']
-    # Build the Table of events for an entire measure
-    # key is the time delta in milliseconds after the start of the measure
-    events.clear(measure_duration)
+    def run(self):
+        if self.settings['clock']:
+            self.midi_out.send(mido.Message('start'))
+        
+        self.events.check_measure_done(force=True)
+        snooze = 0
+        while not self.stopping.is_set():
+            snooze = self.events.time_to_next_event()
+            if snooze > window:
+                delay = max(0.5, (snooze - window)*1e-3)
+                time.sleep(delay)
 
-    events[0].add_message(mido.Message('note_on', channel=9, note=settings['measure']['note'], velocity=settings['measure']['volume']))
+        self.midi_stop()
+        print('ticker:run main thread exit')
 
-    for b in range(settings['num_beats']):
-        if settings['clock']:
-            for n in range(24):
-                tn = int(b * beat_ms + n * beat_ms/ 24)
-                events[tn].add_message(mido.Message('clock'))
+    def build_event_table(self):
+        beat_ms = 60.0e+3/ float(self.settings['tempo'])
+        measure_duration = beat_ms * self.settings['num_beats']
+        
+        self.events.clear(measure_duration)
 
-        t0 = int(b * beat_ms)
-        if settings['beat']['volume'] > 0:
-            events[t0].add_message(mido.Message('note_on', channel=9, note=settings['beat']['note'], velocity=settings['beat']['volume']))
-        if settings['eighths']['volume'] > 0:
-            events[t0].add_message(mido.Message('note_on', channel=9, note=settings['eighths']['note'], velocity=settings['eighths']['volume']))
-            
-            # 2nd eighth may be swung
-            t1 = int(t0 + beat_ms * (0.5 + settings['swing']/200.0))  # range goes from 0 = half of a beat to 100 = all the way on the next beat
-                                                             # the slider shouldn't allow 100, but hard swing can be above 90% and this
-                                                             # makes the math more clear
-            events[t1].add_message(mido.Message('note_on', channel=9, note=settings['eighths']['note'], velocity=settings['eighths']['volume']))
-        if settings['sixteenths']['volume'] > 0:
-            for n in range(4):
-                tn = int(b * beat_ms + n * beat_ms / 4)
-                events[tn].add_message(mido.Message('note_on', channel=9, note=settings['sixteenths']['note'], velocity=settings['sixteenths']['volume']))
-    
-    if midi_out:
-        if settings['clock']:
-            midi_out.send(mido.Message('stop'))
+        self.events[0].add_message(mido.Message('note_on', channel=9, 
+                                            note=self.settings['measure']['note'], 
+                                            velocity=self.settings['measure']['volume']))
 
-        # check before we close to see if it changed
-        if settings['midi_port'] not in str(midi_out):
-            print('Setting MIDI output port to: ' + settings['midi_port'])
-        midi_out.close()
-        midi_out = None
+        for b in range(self.settings['num_beats']):
+            if self.settings['clock']:
+                for n in range(24):
+                    tn = int(b * beat_ms + n * beat_ms/ 24)
+                    self.events[tn].add_message(mido.Message('clock'))
 
-    if (valid_midi_port(settings['midi_port'])):
-        midi_out = mido.open_output(settings['midi_port'])
-    else:
-        print('Could not find MIDI output port: ', settings['midi_port'], ' in ', settings['midi_ports'])
-    if settings['clock']:
-        midi_out.send(mido.Message('start'))
+            t0 = int(b * beat_ms)
+            if self.settings['beat']['volume'] > 0:
+                self.events[t0].add_message( mido.Message('note_on', channel=9, 
+                                        note=self.settings['beat']['note'], 
+                                        velocity=self.settings['beat']['volume']))
 
-def Ticker():
-    global stop
-    global events
-    global midi_out 
+            if self.settings['eighths']['volume'] > 0:
+                self.events[t0].add_message( mido.Message('note_on', channel=9, 
+                                        note=self.settings['eighths']['note'], 
+                                        velocity=self.settings['eighths']['volume']))
+        
+                # 2nd eighth may be swung
+                t1 = int(t0 + beat_ms * (0.5 + self.settings['swing']/200.0))  
+                # range goes from 0 = half of a beat to 100 = all the way on the next beat
+                # the slider shouldn't allow 100, but hard swing can be above 90% and this
+                # makes the math more clear
+                self.events[t1].add_message(mido.Message('note_on', channel=9, 
+                                                          note=self.settings['eighths']['note'], 
+                                                          velocity=self.settings['eighths']['volume']))
 
-    if not midi_out:
-        while not stop:
-            time.sleep(0.1) # we're not doing anything but want to be responsive to changes
-    while not stop:
-        snooze = events.time_to_next_event()
-        if snooze > window:
-            delay = snooze - window
-            time.sleep(delay/1e3)
+            if self.settings['sixteenths']['volume'] > 0:
+                for n in range(4):
+                    tn = int(b * beat_ms + n * beat_ms / 4)
+                    self.events[tn].add_message( mido.Message('note_on', channel=9, 
+                                            note=self.settings['sixteenths']['note'], 
+                                            velocity=self.settings['sixteenths']['volume']))
 
-scheduler = None
-stop = True
-
-def launch():
-    global stop
-    global scheduler
-
-    update_settings(settings)        
-
-    if not scheduler:
-        scheduler = Thread(target=Ticker)
-        stop = False
-        scheduler.start()
-
-def shutdown():
-    global stop
-    global scheduler
-
-    stop = True
-    try:
-        midi_out.send(mido.Message('stop'))
-        midi_out.panic()
-        midi_out.close()
-    except:
-        print('Error closing MIDI')
-    
-    if scheduler:
-        scheduler.join()
-        scheduler = None
-        print('Ticker Stopped')
-
-if __name__ == '__main__':
-    launch()

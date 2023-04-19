@@ -11,12 +11,14 @@ TODO:
 
 from flask import Flask, render_template, request, abort
 from flask_socketio import SocketIO, send, emit
-import ticker, mido, logging
+import mido, logging, json
 from settings import settings
-import json
+from ticker import Ticker
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+ticker = None
 
 @app.before_first_request
 def check_socketio_server():
@@ -32,21 +34,31 @@ def index():
     return render_template('index.html', parameters=json.dumps(settings))
 
 @socketio.on('connect')
-def on_connect():
-    #print('connected')
-    ticker.launch()
+def on_connect(data = None):
+    global settings
+    global ticker
+    if ticker:
+        ticker.stop()
+        ticker = None
+    ticker = Ticker(settings)
+    print('server:on_connect() : ', data)
+    ticker.start()
 
 @socketio.on('update_from_gui')
 def on_update(parameters):
     global settings
-    print('update_from_gui')
-    print(parameters)
-    ticker.update_settings(settings)
+    global ticker
+    print('server:on_update()')
+    settings = parameters
+    ticker.stop()
+
+    ticker = Ticker(settings)
+    ticker.start()
 
 @socketio.on('disconnect')
 def on_disconnect():
-    print('disconnect')
-    ticker.shutdown()
+    print('server:on_disconnect')
+    ticker.stop()
 
 @socketio.on('log')
 def on_log(msg):
