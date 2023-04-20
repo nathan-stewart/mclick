@@ -39,6 +39,7 @@ def on_connect(data = None):
     global ticker
     if ticker:
         ticker.stop()
+        ticker.join()
         ticker = None
     ticker = Ticker(settings)
     print('server:on_connect() : ', data)
@@ -51,14 +52,19 @@ def on_update(parameters):
     print('server:on_update()')
     settings = parameters
     ticker.stop()
+    print('server:waiting on thread to finish')
+    ticker.join()
+    ticker = None
 
+    print('starting new instance')
     ticker = Ticker(settings)
     ticker.start()
 
 @socketio.on('disconnect')
 def on_disconnect():
     print('server:on_disconnect')
-    ticker.stop()
+    if ticker:
+        ticker.stop()
 
 @socketio.on('log')
 def on_log(msg):
