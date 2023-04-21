@@ -8,9 +8,10 @@ import cProfile, pstats
 window = 5e-3 # used for preventing double play, late play
 
 class Message:
-    def __init__(self, t, m):
+    def __init__(self, t, m, n):
         self.time = t
         self.message = m
+        self.name = n
 
     def __eq__(self, t):
         if isinstance(t, Message):
@@ -22,12 +23,16 @@ class Message:
             return self.time > t.time
         return self.time > t
 
-class Measure:
+class Events:
     def __init__(self, s):
+        self.lock = threading.Lock()
         self.events = []
+        self.settings = None
+        self.midi_out = None
         self.playing = []
+        self.midi_queue = []
         self.start = int(time.time() * 1e4) # convert to 100us
-        self.build_event_table(s)
+        self.apply_settings(s)
 
     # if getitem doesn't find t, add an empty Message at that timestamp
     def __getitem__(self, t):
@@ -37,107 +42,132 @@ class Measure:
         i = Message(t)
         return i
 
-    def begins_now(self):
-        self.start = int(time.time() * 1e4)
-
     def seconds_to_next_event(self):
         elapsed_time = (int(time.time() * 1e4) - self.start) % self.duration
-        to_play = []       
-        
+        self.midi_queue = []
         if self.playing:
             next_time = self.playing[0].time
             while self.playing and self.playing[0].time == next_time:
-                to_play.append(heapq.heappop(self.playing).message)
-            return ((next_time - elapsed_time)/1e4, to_play)
+                self.midi_queue.append(heapq.heappop(self.playing).message)
+            return (next_time - elapsed_time)/1e4
         else: # if playing is empty that means we played the measure
             self.playing = self.events.copy()
-        return ((self.duration - elapsed_time)/1e4, [])
+        return (self.duration - elapsed_time)/1e4
 
-    def build_event_table(self, params):
-        beat_ms = 60 * 10.0e+3/ float(params['tempo'])
-        self.duration = beat_ms * params['num_beats']
-        heapq.heappush(self.events,Message(0, mido.Message('note_on', channel=9, 
-                                           note=params['measure']['note'], 
-                                           velocity=params['measure']['volume'])))
-
-        for b in range(params['num_beats']):
-            if params['clock']:
-                for n in range(24):
-                    tn = int(b * beat_ms + n * beat_ms/ 24.0)
-                    heapq.heappush(self.events,Message(tn, mido.Message('clock')))
-
-            t0 = int(b * beat_ms)
-            if params['beat']['volume'] > 0:
-                heapq.heappush(self.events,Message(t0,
-                    mido.Message('note_on', 
-                         channel=9, note=params['beat']['note'], 
-                         velocity=params['beat']['volume'])))
-
-            if params['eighths']['volume'] > 0:
-                # don't play the eight on the beat
-                #self[t0].add_message( mido.Message('note_on', channel=9, 
-                #                        note=params['eighths']['note'], 
-                #                        velocity=params['eighths']['volume']))
-        
-                # 2nd eighth may be swung
-                t1 = int(t0 + beat_ms * (0.5 + params['swing']/200.0))  
-                # range goes from 0 = half of a beat to 100 = all the way on the next beat
-                # the slider shouldn't allow 100, but hard swing can be above 90% and this
-                # makes the math more clear
-                heapq.heappush(self.events,Message(t1, mido.Message('note_on', channel=9, 
-                                                    note=params['eighths']['note'], 
-                                                    velocity=params['eighths']['volume'])))
-
-            if params['sixteenths']['volume'] > 0:
-                for n in range(4):
-                    tn = int(b * beat_ms + n * beat_ms / 4)
-                    # only add the sixteenths not on eights
-                    if n%2:
-                        heapq.heappush(self.events,Message(tn, mido.Message('note_on', channel=9, 
-                                                       note=params['sixteenths']['note'], 
-                                                       velocity=params['sixteenths']['volume'])))
-            self.events = sorted(self.events)
-
-
-class Ticker(threading.Thread):
     def open_midi_port(self):
+        mido.set_backend(self.settings['midi_backend'])
         port = self.settings['midi_port']
         found = any (port in listed for listed in mido.get_output_names()) 
         if port and found:
             self.midi_out = mido.open_output(port)
         
-    def midi_stop(self):
-        self.midi_out.send(mido.Message('stop'))
-        self.midi_out.panic()
-        self.midi_out.close()
-        self.midi_out = None
+    def midi_start(self):
+        self.start = int(time.time() * 1e4)
+        if not self.midi_out:
+            self.open_midi_port()
 
+        if self.settings['clock']:
+            self.midi_out.send(mido.Message('start'))
+
+    def midi_stop(self):
+        if self.midi_out:
+            self.midi_out.send(mido.Message('stop'))
+            self.midi_out.panic()
+            self.midi_out.close()
+            self.midi_out = None
+
+    def drain_queue(self):
+        with self.lock:
+            while self.midi_queue:
+                self.midi_out.send(self.midi_queue.pop())
+
+    def apply_settings(self, params):
+        with self.lock:
+            if (self.settings and not ((self.settings['tempo'] == params['tempo']) or
+                                       (self.settings['swing'] == params['swing']) or
+                                       (self.settings['num_beats'] == params['num_beats']))):
+                # we didn't mess with timing - change the notes/volume 
+                for m in self.events:
+                    m.message.note = params[m.message.name]['note']
+                    m.message.velocity = params[m.message.name]['velocity']
+            else:
+                beat_ms = 60 * 10.0e+3/ float(params['tempo'])
+                self.duration = beat_ms * params['num_beats']
+
+                self.events.clear()
+                heapq.heappush(self.events,Message(0, mido.Message('note_on', channel=9, 
+                                                         note=params['measure']['note'], 
+                                                         velocity=params['measure']['volume']), 'measure'))
+
+                for b in range(params['num_beats']):
+                    if params['clock']:
+                        for n in range(24):
+                            tn = int(b * beat_ms + n * beat_ms/ 24.0)
+                            heapq.heappush(self.events,Message(tn, mido.Message('clock'), 'clock'))
+
+                    t0 = int(b * beat_ms)
+                    if params['beat']['volume'] > 0:
+                        heapq.heappush(self.events,Message(t0,
+                            mido.Message('note_on', 
+                                 channel=9, note=params['beat']['note'], 
+                                 velocity=params['beat']['volume']), 'beat'))
+
+                    if params['eighths']['volume'] > 0:
+                        # don't play the eight on the beat
+                        #self[t0].add_message( mido.Message('note_on', channel=9, 
+                        #                        note=params['eighths']['note'], 
+                        #                        velocity=params['eighths']['volume']))
+                
+                        # 2nd eighth may be swung
+                        t1 = int(t0 + beat_ms * (0.5 + params['swing']/200.0))  
+                        # range goes from 0 = half of a beat to 100 = all the way on the next beat
+                        # the slider shouldn't allow 100, but hard swing can be above 90% and this
+                        # makes the math more clear
+                        heapq.heappush(self.events,Message(t1, mido.Message('note_on', channel=9, 
+                                                            note=params['eighths']['note'], 
+                                                            velocity=params['eighths']['volume']), 
+                                                            'eighths'))
+
+                    if params['sixteenths']['volume'] > 0:
+                        for n in range(4):
+                            tn = int(b * beat_ms + n * beat_ms / 4)
+                            # only add the sixteenths not on eights
+                            if n%2:
+                                heapq.heappush(self.events,Message(tn,
+                                               mido.Message('note_on', channel=9, 
+                                                           note=params['sixteenths']['note'], 
+                                                           velocity=params['sixteenths']['volume']),
+                                                            'sixteenths'))
+                    self.events = sorted(self.events)
+                    if (not self.settings 
+                        or (self.settings['midi_backend'] != params['midi_backend'])
+                        or (self.settings['midi_port']    != params['midi_port'])):
+                        self.midi_stop()
+
+            self.settings = params
+
+
+class Ticker(threading.Thread):
     def __init__(self, params):
         super().__init__()
         self.stopping = threading.Event()
-        self.settings = params 
-        mido.set_backend(self.settings['midi_backend'])
-        self.open_midi_port()
-        self.events = Measure(self.settings)
+        self.events = Events(params)
 
     def stop(self):
         self.stopping.set()
 
+    def update(self, params):
+        self.events.apply_settings(params)
+
     def run(self):
-        print('starting new ticker instance')
-        if self.settings['clock']:
-            self.midi_out.send(mido.Message('start'))
-        
-        self.events.begins_now()
+        self.events.midi_start()
         while not self.stopping.is_set():
-            snooze,msg  = self.events.seconds_to_next_event()
+            snooze = self.events.seconds_to_next_event()
             if snooze > window:
-                time.sleep(snooze)
-            for m in msg:
-                self.midi_out.send(m)
-            
-        self.midi_stop()
-        print('ticker:run main thread exit')
+                self.stopping.wait(snooze)
+                if self.stopping.is_set():
+                    break
+            self.events.drain_queue()
 
 
 

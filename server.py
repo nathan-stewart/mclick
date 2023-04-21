@@ -37,32 +37,26 @@ def index():
 def on_connect(data = None):
     global settings
     global ticker
+    print('server:on_connect() : ', data)
     if ticker:
+        print('server:on_connect() - ticker was already running' + str(ticker))
         ticker.stop()
         ticker.join()
         ticker = None
+
     ticker = Ticker(settings)
-    print('server:on_connect() : ', data)
+    print('server:on_connect() - starting ticker' + str(ticker))
     ticker.start()
 
 @socketio.on('update_from_gui')
 def on_update(parameters):
     global settings
     global ticker
-    print('server:on_update()')
-    settings = parameters
-    ticker.stop()
-    print('server:waiting on thread to finish')
-    ticker.join()
-    ticker = None
-
-    print('starting new instance')
-    ticker = Ticker(settings)
-    ticker.start()
+    print('update_from_gui')
+    ticker.update(parameters)
 
 @socketio.on('disconnect')
 def on_disconnect():
-    print('server:on_disconnect')
     if ticker:
         ticker.stop()
 
@@ -72,7 +66,7 @@ def on_log(msg):
 
 if __name__ == "__main__":
     try:
-        socketio.run(app, host='0.0.0.0', port=5000,use_reloader=False)
+        socketio.run(app, host='0.0.0.0', port=5000)
     except:
         print('Server launch error')
         sys.exit(-1)
