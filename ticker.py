@@ -1,139 +1,102 @@
 #!/usr/bin/env python3
-from dataclasses import dataclass
-import threading
+import threading, heapq
 import time, math, mido, sys
 from settings import settings
+import cProfile, pstats
 
-window = 3.0    # 3mS window - if we're later than this value drop it
+# all times will be converted to integer chunks of 100uS for efficiency
+window = 5e-3 # used for preventing double play, late play
 
-@dataclass
-class TickerEvent:
-    messages    : list[mido.messages.messages.Message]
-    played      : bool
+class Message:
+    def __init__(self, t, m):
+        self.time = t
+        self.message = m
 
-    def __init__(self):
-        self.messages = None
-        self.played = False
+    def __eq__(self, t):
+        if isinstance(t, Message):
+            return self.time == t.time
+        return self.time == t
 
-    def add_message(self, m):
-        if not self.messages:
-            self.messages = []
-        self.messages.append(m)
+    def __gt__(self, t):
+        if isinstance(t, Message):
+            return self.time > t.time
+        return self.time > t
 
-class Events:
-    def __init__(self, settings):
-        self.events = {}
-        self.count = 0
-        self.start_of_measure = time.time() * 1e3 # convert to ms
-        self.elapsed_time = self.start_of_measure
-        self.build_event_table(settings)
+class Measure:
+    def __init__(self, s):
+        self.events = []
+        self.playing = []
+        self.start = int(time.time() * 1e4) # convert to 100us
+        self.build_event_table(s)
 
-    def __getitem__(self, index):
-        if index not in self.events.keys():
-            self.events[index] = TickerEvent()
-        return self.events[index]
+    # if getitem doesn't find t, add an empty Message at that timestamp
+    def __getitem__(self, t):
+        for i in self.events:
+            if i == t:
+                return i
+        i = Message(t)
+        return i
 
-    def reset_played(self):
-        for k in self.events.keys():
-            self.events[k].played = False
+    def begins_now(self):
+        self.start = int(time.time() * 1e4)
 
-    def check_measure_done(self, force = False):
-        if force:
-            self.reset_played()
-            self.start_of_measure = time.time() * 1e3
-            return 0
-
-        # if we have wrapped a measure, back out the measure time from elapsed
-        if self.elapsed_time > self.measure_duration:
-            self.reset_played()
-            while self.elapsed_time > self.measure_duration:
-                self.elapsed_time -= self.measure_duration
-                self.count
-
-        # if all events have been played, return remaining time
-        measure_finished = True
-        for k in self.events.keys():
-            if not self.events[k].played:
-                measure_finished = False
-                break
-
-        if all([self.events[k].played for k in self.events.keys()]):
+    def seconds_to_next_event(self):
+        elapsed_time = (int(time.time() * 1e4) - self.start) % self.duration
+        to_play = []       
         
-            self.start_of_measure += self.measure_duration
-            self.reset_played()
-            pending = self.measure_duration - self.elapsed_time
-            return pending
-        return 0
+        if self.playing:
+            next_time = self.playing[0].time
+            while self.playing and self.playing[0].time == next_time:
+                to_play.append(heapq.heappop(self.playing).message)
+            return ((next_time - elapsed_time)/1e4, to_play)
+        else: # if playing is empty that means we played the measure
+            self.playing = self.events.copy()
+        return ((self.duration - elapsed_time)/1e4, [])
 
-         
-    def time_to_next_event(self):
-        messages = []
-        self.elapsed_time = time.time() * 1e3 - self.start_of_measure
-    
-        # early out if we have no events
-        tsteps = sorted(self.events.keys())
-        if len(tsteps) < 1:
-            return (self.measure_duration, messages) # nothing to do
-        
-        pending = self.measure_duration # initialize to measure duration
-        for t in tsteps:
-            pending = max(0,min(pending, float(t) - self.elapsed_time))
-            event = self.events[t]
-            if event.played or self.elapsed_time >= t + window:
-                # either already played or we missed the window
-                continue
+    def build_event_table(self, params):
+        beat_ms = 60 * 10.0e+3/ float(params['tempo'])
+        self.duration = beat_ms * params['num_beats']
+        heapq.heappush(self.events,Message(0, mido.Message('note_on', channel=9, 
+                                           note=params['measure']['note'], 
+                                           velocity=params['measure']['volume'])))
 
-            if pending > window:
-                break
-
-            if not event.played and self.elapsed_time >= float(t):
-                event.played = True
-                for m in event.messages:
-                    messages.append(m)
-                    pass
-
-        pending = max(pending, self.check_measure_done())
-        return (pending, messages)
-
-    def build_event_table(self, settings):
-        beat_ms = 60.0e+3/ float(settings['tempo'])
-        self.measure_duration = beat_ms * settings['num_beats']
-        self[0].add_message(mido.Message('note_on', channel=9, 
-                                            note=settings['measure']['note'], 
-                                            velocity=settings['measure']['volume']))
-
-        for b in range(settings['num_beats']):
-            if settings['clock']:
+        for b in range(params['num_beats']):
+            if params['clock']:
                 for n in range(24):
-                    tn = int(b * beat_ms + n * beat_ms/ 24)
-                    self.events[tn].add_message(mido.Message('clock'))
+                    tn = int(b * beat_ms + n * beat_ms/ 24.0)
+                    heapq.heappush(self.events,Message(tn, mido.Message('clock')))
 
             t0 = int(b * beat_ms)
-            if settings['beat']['volume'] > 0:
-                self[t0].add_message( mido.Message('note_on', channel=9, 
-                                        note=settings['beat']['note'], 
-                                        velocity=settings['beat']['volume']))
+            if params['beat']['volume'] > 0:
+                heapq.heappush(self.events,Message(t0,
+                    mido.Message('note_on', 
+                         channel=9, note=params['beat']['note'], 
+                         velocity=params['beat']['volume'])))
 
-            if settings['eighths']['volume'] > 0:
-                self[t0].add_message( mido.Message('note_on', channel=9, 
-                                        note=settings['eighths']['note'], 
-                                        velocity=settings['eighths']['volume']))
+            if params['eighths']['volume'] > 0:
+                # don't play the eight on the beat
+                #self[t0].add_message( mido.Message('note_on', channel=9, 
+                #                        note=params['eighths']['note'], 
+                #                        velocity=params['eighths']['volume']))
         
                 # 2nd eighth may be swung
-                t1 = int(t0 + beat_ms * (0.5 + settings['swing']/200.0))  
+                t1 = int(t0 + beat_ms * (0.5 + params['swing']/200.0))  
                 # range goes from 0 = half of a beat to 100 = all the way on the next beat
                 # the slider shouldn't allow 100, but hard swing can be above 90% and this
                 # makes the math more clear
-                self[t1].add_message(mido.Message('note_on', channel=9, 
-                                                          note=settings['eighths']['note'], 
-                                                          velocity=settings['eighths']['volume']))
+                heapq.heappush(self.events,Message(t1, mido.Message('note_on', channel=9, 
+                                                    note=params['eighths']['note'], 
+                                                    velocity=params['eighths']['volume'])))
 
-            if settings['sixteenths']['volume'] > 0:
+            if params['sixteenths']['volume'] > 0:
                 for n in range(4):
                     tn = int(b * beat_ms + n * beat_ms / 4)
-                    self[tn].add_message( mido.Message('note_on', channel=9, 
-                                            note=settings['sixteenths']['note'], 
-                                            velocity=settings['sixteenths']['volume']))
+                    # only add the sixteenths not on eights
+                    if n%2:
+                        heapq.heappush(self.events,Message(tn, mido.Message('note_on', channel=9, 
+                                                       note=params['sixteenths']['note'], 
+                                                       velocity=params['sixteenths']['volume'])))
+            self.events = sorted(self.events)
 
 
 class Ticker(threading.Thread):
@@ -155,10 +118,9 @@ class Ticker(threading.Thread):
         self.settings = params 
         mido.set_backend(self.settings['midi_backend'])
         self.open_midi_port()
-        self.events = Events(self.settings)
+        self.events = Measure(self.settings)
 
     def stop(self):
-        print('ticker:stop()')
         self.stopping.set()
 
     def run(self):
@@ -166,18 +128,16 @@ class Ticker(threading.Thread):
         if self.settings['clock']:
             self.midi_out.send(mido.Message('start'))
         
-        self.events.check_measure_done(force=True)
-        snooze = 0
+        self.events.begins_now()
         while not self.stopping.is_set():
-            snooze,msg  = self.events.time_to_next_event()
+            snooze,msg  = self.events.seconds_to_next_event()
+            if snooze > window:
+                time.sleep(snooze)
             for m in msg:
                 self.midi_out.send(m)
-
-            if snooze > window:
-                delay = max(0.5, (snooze - window)*1e-3)
-                time.sleep(delay)
-
+            
         self.midi_stop()
-        self.stopping.clear() # 
         print('ticker:run main thread exit')
+
+
 
