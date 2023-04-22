@@ -1,8 +1,63 @@
 var socket = io();
 var settings = JSON.parse(document.getElementById('settings-data').getAttribute('data'));
+let note_selected;
 
 function set_midi_note(event) {
-  console.log("clicked icon button: " + event.target.id);
+    console.log("clicked icon button: " + event.target.id);
+    dlg = document.getElementById("note_entry_dialog");
+    
+    note_selected = event.target.id;
+    let value;
+    switch (event.target.id) {
+        case 'icon-measure'  : 
+            value = settings.measure.note;
+            break;
+        case 'icon-beat'     :
+            value = settings.beat.note; 
+            break;
+        case 'icon-eighth'   : 
+            value = settings.eighths.note; 
+            break;
+        case 'icon-sixteenth': 
+            value = settings.sixteenths.note; 
+            break;
+        default:
+            dlg.style.display = "none";
+            return;
+    };
+
+    document.getElementById("note_number").value = value;
+    dlg.style.display = "block"
+}
+
+function note_entry_close(){
+    dlg = document.getElementById("note_entry_dialog");
+    dlg.style.display = "none";
+
+    let value;
+    switch (note_selected) {
+        case 'icon-measure'  : 
+            value = settings.measure.note; 
+            break;
+        case 'icon-beat'     :
+            value = settings.beat.note; 
+            break;
+        case 'icon-eighth'   : 
+            value = settings.eighths.note; 
+            break;
+        case 'icon-sixteenth': 
+            value = settings.sixteenths.note; 
+            break;
+        default:
+            dlg.style.display = "";
+            return;
+    };
+    new_val = document.getElementById("note_number").value;
+    note_selector_field = new_val;
+    console.log(note_selected + " new value = " + note_selector_field);
+
+    socket.emit("update_from_gui", settings);
+    note_selected = null;
 }
 
 function send_updates()
