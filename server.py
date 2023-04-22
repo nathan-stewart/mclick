@@ -18,7 +18,8 @@ from ticker import Ticker
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-ticker = None
+ticker = Ticker(settings)
+ticker.start()
 
 @app.before_first_request
 def check_socketio_server():
@@ -33,32 +34,18 @@ def handle_render_error(data):
 def index():
     return render_template('index.html', parameters=json.dumps(settings))
 
-@socketio.on('connect')
-def on_connect(data = None):
-    global settings
-    global ticker
-    print('server:on_connect() : ', data)
-    if ticker:
-        print('server:on_connect() - ticker was already running' + str(ticker))
-        ticker.stop()
-        ticker.join()
-        ticker = None
-
-    ticker = Ticker(settings)
-    print('server:on_connect() - starting ticker' + str(ticker))
-    ticker.start()
-
 @socketio.on('update_from_gui')
 def on_update(parameters):
     global settings
     global ticker
-    print('update_from_gui')
     ticker.update(parameters)
 
 @socketio.on('disconnect')
 def on_disconnect():
-    if ticker:
-        ticker.stop()
+    global ticker
+    ticker.stop()
+    ticker.join()
+    ticker = None
 
 @socketio.on('log')
 def on_log(msg):
