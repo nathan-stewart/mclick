@@ -130,7 +130,6 @@ class Events:
                                                        note=params['sixteenths']['note'], 
                                                        velocity=params['sixteenths']['volume']),
                                                         'sixteenths'))
-                self.events = sorted(self.events)
                 midi_changed = False
                 if (not self.settings 
                     or (self.settings['midi_backend'] != params['midi_backend'])
@@ -161,10 +160,12 @@ class Ticker(threading.Thread):
         while not self.stopping.is_set():
             snooze = self.events.seconds_to_next_event()
             if snooze >= 0.0:
-                self.updated.wait(timeout=snooze)
                 if self.updated.is_set():
                     self.events.midi_queue.clear()
+                    self.events.playing.clear()
                     self.updated.clear()
+                else:
+                    self.updated.wait(timeout=snooze)
             self.events.drain_queue()
 
 
