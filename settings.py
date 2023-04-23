@@ -9,7 +9,7 @@ settings = {
     "tempo"           : 60,
     "num_beats"       : 4,
     "measure"         : { "note": 77, "volume": 127 },
-    "measure_options" : [2,3,4,6,9,12],
+    "measure_options" : [2,3,4,5,6,7,9,12],
     "beat"            : { "note": 76, "volume": 63 },
     "eighths"         : { "note":51, "volume": 0},
     "swing"           : 0.0,
