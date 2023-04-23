@@ -34,9 +34,9 @@
      fit-margin-left="1"
      fit-margin-right="1"
      fit-margin-bottom="1"
-     inkscape:window-width="1920"
-     inkscape:window-height="1024"
-     inkscape:window-x="1920"
+     inkscape:window-width="1366"
+     inkscape:window-height="720"
+     inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
@@ -47,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -66,17 +66,15 @@
          id="tspan14"
          x="93.244232"
          y="56.966457"
-         style="stroke-width:0.264583px"></tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:125%;font-family:Bravura;-inkscape-font-specification:'Bravura, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="74.156128"
-       y="61.708443"
-       id="text20"><tspan
-         sodipodi:role="line"
-         id="tspan18"
-         x="74.156128"
-         y="61.708443"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;font-family:Bravura;-inkscape-font-specification:'Bravura, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583px"></tspan></text>
+         style="stroke-width:0.264583px" /></text>
+    <g
+       aria-label=""
+       id="text20"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;line-height:125%;font-family:Bravura;-inkscape-font-specification:'Bravura, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1">
+      <path
+         d="m 75.521374,62.56569 c -0.444499,0 -0.846664,0.349249 -0.846664,0.804331 0,0.04233 0,0.07408 0.01058,0.116416 0.105833,0.677331 0.93133,0.857247 1.502828,0.857247 0.804331,-0.01058 1.555746,-0.402165 1.936744,-1.121829 0.232833,-0.444499 0.412749,-1.005414 0.412749,-1.502829 v -0.04233 c -0.01058,-0.486832 -0.09525,-1.037164 -0.328082,-1.460496 -0.433916,-0.783164 -0.952497,-1.164163 -1.841494,-1.164163 -0.476249,0 -1.005414,0.07408 -1.386413,0.380999 -0.370415,0.296333 -0.613831,0.772581 -0.613831,1.24883 0,0.825497 0.783164,1.534578 1.598078,1.534578 0.338666,0 0.687915,-0.127 0.96308,-0.370415 0.02117,-0.02117 0.04233,-0.02117 0.0635,-0.02117 0.0635,0 0.09525,0.08467 0.09525,0.253999 -0.03175,1.957911 -0.656165,2.010827 -0.878414,2.010827 -0.211666,0 -0.349249,-0.05292 -0.349249,-0.158749 0,-0.148167 0.201083,-0.275166 0.264583,-0.402166 0.05292,-0.09525 0.07408,-0.201082 0.07408,-0.306915 0,-0.15875 -0.05292,-0.317499 -0.15875,-0.433916 -0.07408,-0.137583 -0.380999,-0.222249 -0.518581,-0.222249 z m 0.878413,-0.857247 c -0.338665,0 -0.624414,-0.529165 -0.624414,-1.18533 0,-0.656164 0.285749,-1.185329 0.624414,-1.185329 0.338666,0 0.613832,0.529165 0.613832,1.185329 0,0.656165 -0.275166,1.18533 -0.613832,1.18533 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.5833px;font-family:Bravura;-inkscape-font-specification:'Bravura, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583px"
+         id="path4953" />
+    </g>
   </g>
 </svg>
