@@ -5,13 +5,11 @@ let note_selected;
 socket.on("connect", function() { 
     console.log("connected to server");
     document.getElementById("disconnect_warning").style.display="none";
-    document.getElementById("entries").style.display="block";
 });
 
 socket.on("disconnect", function() {
     console.log("disconnected from server");
     document.getElementById("disconnect_warning").style.display="block";
-    document.getElementById("entries").style.display="none";
 });
 
 function set_midi_note(event) {
@@ -105,6 +103,7 @@ function meter_clicked(event)
 {
     console.log(event.target.id + " clicked: old meter = " +
         document.getElementById("measure_length").src);
+    try{
     let button_id = event.target.id;
     let meters = settings.measure_options;
     let current_meter = settings.num_beats;
@@ -120,7 +119,11 @@ function meter_clicked(event)
     settings.num_beats = parseInt(meters[meter_idx]);
     document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
     console.log(event.target.id + " clicked: New meter = " 
-        + document.getElementById("measure_length").src);
+        + document.getElementById("measure_length").src);}
+    catch (err)
+    {
+        console.log(err);
+    }
 }
 
 function popup_menu(){
@@ -145,43 +148,50 @@ window.onclick = function(event) {
 
 function myLoad(event)
 {
-    document.getElementById("meter_up").addEventListener("click", meter_clicked);
-    document.getElementById("meter_down").addEventListener("click", meter_clicked);
+    try {
+        document.getElementById("meter_up").addEventListener("click", meter_clicked);
+        document.getElementById("meter_down").addEventListener("click", meter_clicked);
 
-    document.getElementById("icon-measure").addEventListener("click", set_midi_note);
-    document.getElementById("icon-beat").addEventListener("click", set_midi_note);
-    document.getElementById("icon-eighth").addEventListener("click", set_midi_note);
-    document.getElementById("icon-sixteenth").addEventListener("click", set_midi_note);
-    
-    document.getElementById("tempo_slider").addEventListener("input", update_tempo_drag);
+        document.getElementById("icon-measure").addEventListener("click", set_midi_note);
+        document.getElementById("icon-beat").addEventListener("click", set_midi_note);
+        document.getElementById("icon-eighth").addEventListener("click", set_midi_note);
+        document.getElementById("icon-sixteenth").addEventListener("click", set_midi_note);
+        
+        document.getElementById("tempo_slider").addEventListener("input", update_tempo_drag);
 
-    document.getElementById("tempo_slider").addEventListener("change", on_change);
-    document.getElementById("measure_volume").addEventListener("change", on_change);
-    document.getElementById("beat_volume").addEventListener("change", on_change);
-    document.getElementById("eighth_volume").addEventListener("change", on_change);
-    document.getElementById("swing_value").addEventListener("change", on_change);
-    document.getElementById("sixteenth_volume").addEventListener("change", on_change);
-    
-    // update sliders
-    document.getElementById("tempo_slider").value = settings.tempo;
-    document.getElementById("tempo_output").value = settings.tempo;
-    document.getElementById("measure_volume").value = settings.measure.volume;
-    document.getElementById("beat_volume").value = settings.beat.volume; 
-    document.getElementById("eighth_volume").value = settings.eighths.volume;
-    document.getElementById("swing_value").value = settings.swing;
-    document.getElementById("sixteenth_volume").value = settings.sixteenths.volume;
-    document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+        document.getElementById("tempo_slider").addEventListener("change", on_change);
+        document.getElementById("measure_volume").addEventListener("change", on_change);
+        document.getElementById("beat_volume").addEventListener("change", on_change);
+        document.getElementById("eighth_volume").addEventListener("change", on_change);
+        document.getElementById("swing_value").addEventListener("change", on_change);
+        document.getElementById("sixteenth_volume").addEventListener("change", on_change);
+        
+        // update sliders
+        document.getElementById("tempo_slider").value = settings.tempo;
+        document.getElementById("tempo_output").value = settings.tempo;
+        document.getElementById("measure_volume").value = settings.measure.volume;
+        document.getElementById("beat_volume").value = settings.beat.volume; 
+        document.getElementById("eighth_volume").value = settings.eighths.volume;
+        document.getElementById("swing_value").value = settings.swing;
+        document.getElementById("sixteenth_volume").value = settings.sixteenths.volume;
+        document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
 
 
-    if (window.localStorage) {
-        var t0 = Number(window.localStorage["myUnloadEventFlag"]);
-        if (isNaN(t0)) t0=0;
-        var t1=new Date().getTime();
-        var duration=t1-t0;
-        if (duration<5*1000) {
-            // less than 5 seconds since the previous Unload event => it's a browser reload (so cancel the disconnection request)
-            askServerToCancelDisconnectionRequest(); // asynchronous AJAX call
+        if (window.localStorage) {
+            var t0 = Number(window.localStorage["myUnloadEventFlag"]);
+            if (isNaN(t0)) t0=0;
+            var t1=new Date().getTime();
+            var duration=t1-t0;
+            if (duration<5*1000) {
+                // less than 5 seconds since the previous Unload event => it's a browser reload (so cancel the disconnection request)
+                askServerToCancelDisconnectionRequest(); // asynchronous AJAX call
+            }
         }
+        console.log("callback registration ok");
+    }
+    catch (err)
+    {
+        console.log("callback registration failed: " + err);
     }
 }
 

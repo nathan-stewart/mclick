@@ -16,7 +16,8 @@
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-right: 10px solid black;
-  pointer-events:none;
+  /*pointer-events:none;*/
+  z-index: -1;
   display: flex;
   justify-content: center;
 }
@@ -27,7 +28,8 @@
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
   border-left: 10px solid black;
-  pointer-events:none;
+  /*pointer-events:none;*/
+  z-index: -1;
   display: flex;
   justify-content: center;
 }
