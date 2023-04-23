@@ -8,7 +8,6 @@ TODO:
        * Fix Measure Buttons/graphic
        * Click on icon changes the MIDI note for that subdivision
 '''
-
 from flask import Flask, render_template, request, abort
 from flask_socketio import SocketIO, send, emit
 import mido, logging, json
@@ -38,14 +37,21 @@ def index():
 def on_update(parameters):
     global settings
     global ticker
-    ticker.update(parameters)
+    settings = parameters
+    ticker.update(settings)
+    # TBD - save settings
+
+@socketio.on('connect')
+def on_connect():
+    global settings
+    global ticker
+    if ticker and not ticker.is_alive():
+        ticker.start()
 
 @socketio.on('disconnect')
 def on_disconnect():
     global ticker
-    ticker.stop()
-    ticker.join()
-    ticker = None
+    print('disconnect')
 
 @socketio.on('log')
 def on_log(msg):
