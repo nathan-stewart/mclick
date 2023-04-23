@@ -27,91 +27,97 @@
             <!-- Header/Logo -->
             <div class="header">
                 <div class="title">MClick</div>
+                <div class="logo" ></div>
             </div>
+            <div class="row"></div>
 
-            <!-- Tempo -->
-            <div class="row">
-                <div class="legend">
-                    <output class="tempo" id="tempo_output"></output>
+            <div id="the_form">
+                <!-- Tempo -->
+                <div class="row">
+                    <div class="legend">
+                        <output class="tempo" id="tempo_output"></output>
+                    </div>
+                    <div class="sliderbox">
+                        <input type="range" id="tempo_slider" min=40 max=240 class="slider" >
+                    </div>
+                    <div class="gadget"></div>
                 </div>
-                <div class="sliderbox">
-                    <input type="range" id="tempo_slider" min=40 max=240 class="slider" >
+
+                <!-- Measure -->
+                <div class="row">
+                    <div class="legend">
+                        <img alt="downbeat" src="{{ url_for('static', filename='img/whole.svg') }}"  id="icon-measure">
+                    </div>
+
+                    <div class="sliderbox">
+                        <input class="slider" id="measure_volume" type="range" min=0 max=127>
+                    </div>
+
+                    <div class="gadget">
+                        <button class="down-button">
+                            <div class="arrow-down" id="meter_down" title="down"></div>
+                        </button>
+                        <img alt="count" id="measure_length" >
+                        <button class="up-button">
+                            <div class="arrow-up" id="meter_up" title="up"></div>
+                        </button>
+                    </div>
                 </div>
-                <div class="gadget"></div>
+
+                <!-- Beat -->
+                <div class="row">
+                    <div class="legend">
+                        <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}"  id="icon-beat">
+                    </div>
+                    <div class="sliderbox">
+                    <input type="range" min=0 max=127 class="slider"  id="beat_volume">
+                    </div>
+                    <div class="gadget"></div>
+                </div>
+
+                <!-- Eighths -->
+                <div class="row">
+                    <div class="legend">
+                        <img alt="eighths" src="{{ url_for('static', filename='img/eighth.svg') }}"  id="icon-eighth">
+                    </div>
+                    <div class="sliderbox">
+                        <input class="slider"  id="eighth_volume" type="range" min=0 max=127 >
+                    </div>
+                    <div class="gadget"></div>
+                </div>
+
+                <!-- Swing -->
+                <div class="row">
+                    <div class="legend">
+                        <img alt="straight" src="{{ url_for('static', filename='img/straight.svg') }}" >
+                    </div>
+
+                    <div class="sliderbox">
+                        <input class="slider" id="swing_value" type="range" min=0 max=100 >
+                    </div>
+                    <div class="gadget">
+                        <img alt="swing" src="{{ url_for('static', filename='img/swing.svg') }}" >
+                    </div>
+                </div>
+
+                <!-- Sixteenths -->
+                <div class="row">
+                    <div class="legend">
+                        <img alt="sixteenths" src="{{ url_for('static', filename='img/sixteenth.svg') }}"  id="icon-sixteenth">
+                    </div>
+                    <div class="sliderbox">
+                        <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 >
+                    </div>
+                    <div class="gadget"></div>
+                </div>
+                <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+                <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
+                <!--script type="text/javascript"> set_meter_icon(4);</script-->
             </div>
-
-            <!-- Measure -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="downbeat" src="{{ url_for('static', filename='img/whole.svg') }}"  id="icon-measure">
-                </div>
-
-                <div class="sliderbox">
-                    <input class="slider" id="measure_volume" type="range" min=0 max=127>
-                </div>
-
-                <div class="gadget">
-                    <button class="down-button">
-                        <div class="arrow-down" id="meter_down" title="down"></div>
-                    </button>
-                    <img alt="count" id="measure_length" >
-                    <button class="up-button">
-                        <div class="arrow-up" id="meter_up" title="up"></div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Beat -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}"  id="icon-beat">
-                </div>
-                <div class="sliderbox">
-                <input type="range" min=0 max=127 class="slider"  id="beat_volume">
-                </div>
-                <div class="gadget"></div>
-            </div>
-
-            <!-- Eighths -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="eighths" src="{{ url_for('static', filename='img/eighth.svg') }}"  id="icon-eighth">
-                </div>
-                <div class="sliderbox">
-                    <input class="slider"  id="eighth_volume" type="range" min=0 max=127 >
-                </div>
-                <div class="gadget"></div>
-            </div>
-
-            <!-- Swing -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="straight" src="{{ url_for('static', filename='img/straight.svg') }}" >
-                </div>
-
-                <div class="sliderbox">
-                    <input class="slider" id="swing_value" type="range" min=0 max=100 >
-                </div>
-                <div class="gadget">
-                    <img alt="swing" src="{{ url_for('static', filename='img/swing.svg') }}" >
-                </div>
-            </div>
-
-            <!-- Sixteenths -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="sixteenths" src="{{ url_for('static', filename='img/sixteenth.svg') }}"  id="icon-sixteenth">
-                </div>
-                <div class="sliderbox">
-                    <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 >
-                </div>
-                <div class="gadget"></div>
-            </div>
-            <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
-            <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
-            <!--script type="text/javascript"> set_meter_icon(4);</script-->
         </div>
-        <div id="disconnect_warning" class="disconnected" style="display: none;">Can't connect to server</div>
+        <div id="disconnect_warning" class="disconnected" >
+            Server shut down
+        </div>
         <div id="note_entry_dialog" class="dialog">
             <div class="dialog-content">
                 <label for="spinbox">Note Number:</label>
