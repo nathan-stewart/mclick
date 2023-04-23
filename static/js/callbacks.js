@@ -1,6 +1,18 @@
-var socket = io();
+var socket = io.connect();
 var settings = JSON.parse(document.getElementById('settings-data').getAttribute('data'));
 let note_selected;
+
+socket.on("connect", function() { 
+    console.log("connected to server");
+    document.getElementById("disconnect_warning").style.display="none";
+    document.getElementById("entries").style.display="block";
+});
+
+socket.on("disconnect", function() {
+    console.log("disconnected from server");
+    document.getElementById("disconnect_warning").style.display="block";
+    document.getElementById("entries").style.display="none";
+});
 
 function set_midi_note(event) {
     console.log("clicked icon button: " + event.target.id);
@@ -34,28 +46,28 @@ function note_entry_close(){
     dlg = document.getElementById("note_entry_dialog");
     dlg.style.display = "none";
 
-    let value;
+    let value = parseInt(document.getElementById("note_number").value);
     switch (note_selected) {
-        case 'icon-measure'  : 
-            value = settings.measure.note; 
+        case 'icon-measure': 
+            settings.measure.note = value;
             break;
-        case 'icon-beat'     :
-            value = settings.beat.note; 
+        case 'icon-beat':
+            settings.beat.note = value;
             break;
-        case 'icon-eighth'   : 
-            value = settings.eighths.note; 
+        case 'icon-eighth': 
+            settings.eighths.note = value; 
             break;
         case 'icon-sixteenth': 
-            value = settings.sixteenths.note; 
+            settings.sixteenths.note = value;
             break;
         default:
             dlg.style.display = "";
             return;
     };
-    new_val = document.getElementById("note_number").value;
-    note_selector_field = new_val;
-    console.log(note_selected + " new value = " + note_selector_field);
-
+    console.log(settings.measure);
+    console.log(settings.beat);
+    console.log(settings.eighths);
+    console.log(settings.sixteenths);
     socket.emit("update_from_gui", settings);
     note_selected = null;
 }
