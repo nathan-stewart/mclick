@@ -1,14 +1,25 @@
 var socket = io.connect();
 var settings = JSON.parse(document.getElementById('settings-data').getAttribute('data'));
 let note_selected;
+var disconnected = false;
+
+function auto_refresh() {
+    if (disconnected){
+        local.reload();
+    }
+}
+
+setTimeout(auto_refresh, 5000);
 
 socket.on("connect", function() { 
     console.log("connected to server");
+    document.getElementById("the_form").style.display="block";
     document.getElementById("disconnect_warning").style.display="none";
 });
 
 socket.on("disconnect", function() {
     console.log("disconnected from server");
+    document.getElementById("the_form").style.display="none";
     document.getElementById("disconnect_warning").style.display="block";
 });
 
