@@ -17,7 +17,7 @@
     font-size: xx-large;
 }
 
-.row {
+.row, .header {
     display: flex;
     align-items: center;
     width: 100%;
@@ -26,7 +26,6 @@
 }
 
 .header {
-    @extend .row
     height: 18%;
 }
 
