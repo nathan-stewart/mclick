@@ -11,9 +11,9 @@ It also publishes MIDI clock data to synchronize effects pedals which can receiv
 Closing the browser stops the metronome.
 
 TBD:
-Priority queue lowered cpu usage but needs a new solution for responsiveness
-implement MIDI note change
 Without becoming a full fledged drum machine, consider putting a checkbox for skipping %2 == 0 beats for all subdivisions
+
+MIDI file playback while doing metronome functions
 
 Requirements:
 
