@@ -97,9 +97,34 @@ socket.on('update', function(data) {
     console.log("on_update: begin");
 });
 
+function enable_children(nodes, state)
+{
+    for (child of nodes) {
+        child.disabled = state;
+    }
+}
+
 function on_change(event)
 {
     console.log("on_change: " + event.target.id)
+
+    sixteenths = document.getElementById("sixteenth_volume");
+    swing = document.getElementById("swing_value");
+    const switchables = {
+        swing    : [ document.getElementById("swing_value")],
+        sixteenths: [ document.getElementById("sixteenth_volume")]
+    };
+
+    switch (event.target.id) {
+        case "swing_value": 
+            enable_children(switchables.sixteenths, swing.value > 0);
+            break;
+        case "sixteenth_volume": 
+            enable_children(switchables.swing, sixteenths.value > 0);
+            break;
+        default:
+            break;
+    };
     send_updates();
 }
 
