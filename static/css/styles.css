@@ -11,35 +11,10 @@
 
 .title {
     text-align: center;
-    vertical-align: top;
-    font-size: xx-large;
-}
-
-.header {
-    display: flex;
-    align-items: flex-start;
     justify-content: center;
-    width: 100%;
-    height: 20%;
-    min-height: 100px;
-}
-
-.logo {
-    background-image: url('../img/mclick.svg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    width: auto;
-    min-height: 100px;
-    min-width: 100px;
-    object-fit: contain;
-}
-
-.entries{ 
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    margin: 0px;
+    vertical-align: top;
+    width: 70%;
+    font-size: xx-large;
 }
 
 .row {
@@ -50,10 +25,27 @@
     vertical-align: middle;
 }
 
+.header {
+    @extend .row
+    height: 18%;
+}
+
+.logo {
+    background-image: url('../img/mclick.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    min-height: 48px;
+    min-width: 48px;
+    max-height: 100px;
+    max-width: 100px;
+    height: 100%;
+    object-fit: contain;
+}
+
 .legend {
     display: flex;
     align-items: flex-end;
-    justify-content: flex-end;
+    justify-content: flex-start;
     height: 100%;
     width: 30%;
     margin: 10px;
@@ -67,7 +59,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    width: 40%;
+    width: 30%;
     max-width: 350px;
 }
 
