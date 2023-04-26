@@ -1,172 +1,146 @@
-#!/usr/bin/env python3
 import threading, heapq
 import time, math, mido, sys
 from settings import settings
-import cProfile, pstats
 
-# all times will be converted to integer chunks of 100uS for efficiency
-window = 1e-3 # close enough - play it now
+import numpy as np
+import matplotlib.pyplot as pp
 
-class Message:
-    def __init__(self, t, m, n):
-        self.time = t
-        self.message = m
-        self.name = n
+def plot_measure(series, width=6, height=0.5):
+    fig, ax = pp.subplots()
+    for i, label in enumerate(series.keys()):
+        times = series[label]
+        ax.plot(times, np.zeros_like(times) + i, '|', markersize=10, label=label)
+    ax.set_yticks(range(len(series_list)))
+    ax.set_yticklabels([s[0] for s in series_list], fontsize=12)
+    ax.tick_params(axis='both', labelsize=12)
+    ax.autoscale(enable=True, axis='x', tight=True)
+    fig.set_size_inches(width, len(series_list) * height)
+    pp.subplots_adjust(left=0.2, right=0.95, top=0.95, bottom=0.1)
+    pp.xlabel('Time (ms)', fontsize=14)
+    pp.show()
 
-    def __eq__(self, t):
-        if isinstance(t, Message):
-            return self.time == t.time
-        return self.time == t
 
-    def __gt__(self, t):
-        if isinstance(t, Message):
-            return self.time > t.time
-        return self.time > t
-
-class Events:
-    def __init__(self, s):
+class Ticker(threading.Thread):
+    def __init__(self, params):
+        super().__init__()
         self.lock = threading.Lock()
-        self.events = []
-        self.settings = None
+        self.stopping = threading.Event() # this is only used to exit
+        self.updated = threading.Event()
+        self.trackmap = {}
         self.midi_out = None
-        self.playing = []
-        self.midi_queue = []
-        self.start = int(time.time() * 1e4) # convert to 100us
-        self.apply_settings(s)
 
-    # if getitem doesn't find t, add an empty Message at that timestamp
-    def __getitem__(self, t):
-        for i in self.events:
-            if i == t:
-                return i
-        i = Message(t)
-        return i
+        self.measure = mido.MidiFile()  # this is the base pattern for the metronome
+        self.song = None                # this is the song being played (future support)
+        self.playlist = mido.MidiFile() # this is what actually gets sent to the MIDI interface
+        self.update(params)
 
-    def seconds_to_next_event(self):
-        elapsed_time = (int(time.time() * 1e4) - self.start) % self.duration
-        self.midi_queue.clear()
-        if self.playing:
-            next_time = self.playing[0].time
-            while self.playing and self.playing[0].time == next_time:
-                self.midi_queue.append(heapq.heappop(self.playing).message)
-            return (next_time - elapsed_time)/1e4
-        else: # if playing is empty that means we played the measure
-            self.playing = self.events.copy()
-        return (self.duration - elapsed_time)/1e4
+    def stop(self):
+        self.stopping.set()
 
-    def open_midi_port(self):
-        mido.set_backend(self.settings['midi_backend'])
-        port = self.settings['midi_port']
-        found = any (port in listed for listed in mido.get_output_names()) 
-        if port and found:
-            self.midi_out = mido.open_output(port)
+    def update(self, params):
+        def add_track(partname, events):
+            track = mido.MidiTrack()
+            for e in events:
+                if partname == 'clock':
+                    track.append(mido.Message('clock'))
+                else:
+                    v  = params[partname]['volume']
+                    if v > 0:
+                        n = params[partname]['note']
+                        track.append(mido.Message('note_on', channel=9, note=n, velocity=v))
+            return track
         
-    def midi_start(self):
-        self.start = int(time.time() * 1e4)
-        if not self.midi_out:
-            self.open_midi_port()
+        trackmap = {}
+        with self.lock:
+            ppq = 100
+            beat = 60.0 / float(params['tempo'])
+            beat_count = params['num_beats']
 
-        if self.settings['clock']:
-            self.midi_out.send(mido.Message('start'))
+            clock = [int(n * ppq * beat / 24.0) for n in range(24 * beat_count)]
+            trackmap['clock'] = add_track('clock', clock)
+            trackmap['measure']= add_track('measure', [0])
+            
+            skip = params['beat']['skip']
+            swing = min(1.0, max(0.0, params['swing'] / 100.0))
+            compound = True if beat_count in [6,9,12] else False
+            print('Time Signature = %d %s %s %s' % (beat_count,
+                'swing' if swing > 0 else '',
+                'compound' if compound else '',
+                'skip' if skip else ''))
 
-    def midi_stop(self):
+            # don't play the one - it's played by the measure 
+            beats = [int(b * ppq * beat)  for b in range(1,beat_count) ] 
+            if skip and beat_count == 3: # in 3/4 time, skip beat plays the 3
+                beats = [2 * ppq * beat]
+            elif skip and  beat_count == 4: # in 4/4 time skip beat plays 2 and 4
+                beats = [b * ppq * beat for b in [1,3]]
+            elif compound: 
+                # signatures considered compound
+                # we play beats on 1, 4, 7, 10 and 8ths elsewhere
+                beats = [int(b * ppq * beat) for b in range(1,beat_count) if not b%3]
+            trackmap['beat'] = add_track('beat', beats)
+
+            if compound:
+                # compounds play eights as weak beats - they're not half beats 
+                # we skipped these beats above
+                eighths = [ int(ppq * beat * n) for n in range(beat_count) if n%3 ]
+            else:
+                eights = [ int(ppq * beat * n /2.0) for n in range(beat_count * 2)] 
+                # capping swing at dotted eighth as a hard swing
+                sw_adj = int(ppq * beat / 4.0 * swing)
+                eighths = [ int(ppq * beat * n/2.0 +(n%2)*sw_adj) for n in range(beat_count * 2) ]
+            trackmap['eighths'] = add_track('eighths', eighths)
+
+            subdivide = True if ((params['sixteenths']['volume'] > 0) and 
+                                 (params['eighths']['volume'] > 0) and 
+                                 not compound) else False
+            if subdivide:
+                # change the eight notes to the same sound as sixteenths
+                for m in self.measure.tracks['eighths']:
+                    m.note = params['sixteenths']
+
+            sixteenths = []
+            if compound:
+                sw_adj = int(ppq * beat / 4.0  * swing)
+                sixteenths = [int(ppq * n * beat/2.0 + sw_adj*(n%2)) for n in range(beat_count * 2) ]
+            else:
+                # if time signature is simple and we are swinging eighth's don't play 16ths
+                if swing <= 0.001:
+                    sixteenths = [int(ppq * n * beat/4.0) for n in range(beat_count * 4)]
+            trackmap['sixteenths'] = add_track('sixteenths', sixteenths)
+            plot_measure(trackmap)
+
+        self.settings = params
+        self.midi_setup()
+        self.updated.set()
+
+    def midi_teardown(self):
         if self.midi_out:
             self.midi_out.send(mido.Message('stop'))
             self.midi_out.panic()
             self.midi_out.close()
             self.midi_out = None
 
-    def drain_queue(self):
-        with self.lock:
-            while self.midi_queue:
-                self.midi_out.send(self.midi_queue.pop())
+    def midi_setup(self):
+        mido.set_backend(self.settings['midi_backend'])
+        if self.midi_out:
+            self.midi_teardown()
 
-    def apply_settings(self, params):
-        with self.lock:
-            beat_ms = 60 * 10.0e+3/ float(params['tempo'])
-            self.duration = beat_ms * params['num_beats']
-
-            self.events.clear()
-            heapq.heappush(self.events,Message(0, mido.Message('note_on', channel=9, 
-                                                     note=params['measure']['note'], 
-                                                     velocity=params['measure']['volume']), 'measure'))
-
-            for b in range(params['num_beats']):
-                if params['clock']:
-                    for n in range(24):
-                        tn = int(b * beat_ms + n * beat_ms/ 24.0)
-                        heapq.heappush(self.events,Message(tn, mido.Message('clock'), 'clock'))
-
-                t0 = int(b * beat_ms)
-                if params['beat']['volume'] > 0:
-                    heapq.heappush(self.events,Message(t0,
-                        mido.Message('note_on', 
-                             channel=9, note=params['beat']['note'], 
-                             velocity=params['beat']['volume']), 'beat'))
-
-                if params['eighths']['volume'] > 0:
-                    # don't play the eight on the beat
-                    #self[t0].add_message( mido.Message('note_on', channel=9, 
-                    #                        note=params['eighths']['note'], 
-                    #                        velocity=params['eighths']['volume']))
-            
-                    # 2nd eighth may be swung
-                    t1 = int(t0 + beat_ms * (0.5 + params['swing']/200.0))  
-                    # range goes from 0 = half of a beat to 100 = all the way on the next beat
-                    # the slider shouldn't allow 100, but hard swing can be above 90% and this
-                    # makes the math more clear
-                    heapq.heappush(self.events,Message(t1, mido.Message('note_on', channel=9, 
-                                                        note=params['eighths']['note'], 
-                                                        velocity=params['eighths']['volume']), 
-                                                        'eighths'))
-
-                if params['sixteenths']['volume'] > 0:
-                    for n in range(4):
-                        tn = int(b * beat_ms + n * beat_ms / 4)
-                        # only add the sixteenths not on eights
-                        if n%2:
-                            heapq.heappush(self.events,Message(tn,
-                                           mido.Message('note_on', channel=9, 
-                                                       note=params['sixteenths']['note'], 
-                                                       velocity=params['sixteenths']['volume']),
-                                                        'sixteenths'))
-                midi_changed = False
-                if (not self.settings 
-                    or (self.settings['midi_backend'] != params['midi_backend'])
-                    or (self.settings['midi_port']    != params['midi_port'])):
-                    self.midi_stop()
-                    midi_changed = True
-        self.settings = params
-        if midi_changed:
-            self.midi_start()
-
-
-class Ticker(threading.Thread):
-    def __init__(self, params):
-        super().__init__()
-        self.stopping = threading.Event()
-        self.events = Events(params)
-        self.updated = threading.Event()
-
-    def stop(self):
-        self.stopping.set()
-
-    def update(self, params):
-        self.events.apply_settings(params)
-        self.updated.set()
+        port = self.settings['midi_port']
+        if port and any (port in listed for listed in mido.get_output_names()):
+            self.midi_out = mido.open_output(port)
+            self.midi_out.send(mido.Message('start'))
 
     def run(self):
-        self.events.midi_start()
+        self.midi_setup()
         while not self.stopping.is_set():
-            snooze = self.events.seconds_to_next_event()
-            if snooze >= 0.0:
-                if self.updated.is_set():
-                    self.events.midi_queue.clear()
-                    self.events.playing.clear()
-                    self.updated.clear()
-                else:
-                    self.updated.wait(timeout=snooze)
-            self.events.drain_queue()
+            for msg in self.playlist.play():
+                if self.stopping.is_set() or self.updated.is_set():
+                    break
+                if self.updated.is_set(): 
+                    self.midi_out.send(msg)
+            if self.stopping.is_set():
+                break
 
-
-
+if __name__ == "__main__":
+    ticker = Ticker(settings)
