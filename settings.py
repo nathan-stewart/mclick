@@ -13,7 +13,6 @@ settings = {
     "beat"            : { "note": 76, "volume": 63 },
     "eighths"         : { "note":51, "volume": 0},
     "swing"           : 0.0,
-    "sixteenths"      : { "note":42, "volume":0},
-    "clock"           : False
+    "sixteenths"      : { "note":42, "volume":0}
 }
 
