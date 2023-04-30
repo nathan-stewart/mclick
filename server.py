@@ -45,13 +45,13 @@ def on_update(parameters):
 def on_connect():
     global settings
     global ticker
-    if ticker and not ticker.is_alive():
-        ticker.start()
+    ticker.update(settings)
 
 @socketio.on('disconnect')
 def on_disconnect():
     global ticker
     print('disconnect')
+    ticker.update(None)
 
 @socketio.on('log')
 def on_log(msg):
