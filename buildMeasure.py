@@ -25,13 +25,12 @@ def make_template_measure(params):
                 msg = mido.Message('clock',time=t-last_t)
             else:
                 v  = params[partname]['volume']
-                if v > 0:
-                    n = params[partname]['note']
-                    msg = mido.Message('note_on', 
-                                        channel=9, 
-                                        note=n, 
-                                        velocity=v, 
-                                        time=t-last_t)
+                n = params[partname]['note']
+                msg = mido.Message('note_on', 
+                                    channel=9, 
+                                    note=n, 
+                                    velocity=v, 
+                                    time=t-last_t)
             if msg:
                 que.add(AbstimeMessage(t,msg))
             last_t = t
