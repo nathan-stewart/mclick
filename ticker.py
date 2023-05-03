@@ -1,26 +1,30 @@
-#!/usr/bin/python3 
-from collections import deque
+#!/usr/bin/python3
+from sortedcontainers import SortedList
 import threading
 import time
 import math
 import mido
 import sys
+import os
 
 from settings import settings
 from buildMeasure import make_template_measure
 
 class Ticker(threading.Thread):
-    def __init__(self, params):
+    def __init__(self, params = None):
         super().__init__()
         self.lock = threading.Lock()
         self.stopping = threading.Event() # this is only used to exit
         self.settings = None
         self.trackmap = {}
         self.midi_out = None
-        self.measure = None  # this is the base pattern for the metronome
-        self.song = None                # this is the song being played (future support)
-        self.playlist = mido.MidiFile() # this is what actually gets sent to the MIDI interface
-        self.update(params)    
+        self.playlist = []
+        self.play_index = None
+        self.rhythmq = [] # list of SortedLists
+        self.rhythm_track = mido.MidiTrack()
+        self.rhythm_track.name = 'MClick'
+        self.song = mido.MidiFile()
+        self.update(params)
 
     def stop(self):
         self.stopping.set()
@@ -43,85 +47,84 @@ class Ticker(threading.Thread):
             self.midi_out = mido.open_output(port)
             self.midi_out.send(mido.Message('start'))
 
-    def copy_measure_to_playlist(self):
-        print('copy_measure_to_playlist')
-        if not self.measure:
-            return
-            
-        # if there's already a track with channel 10 content, add to that one
-        rhythm = None
-        added = False
-        for pt in self.playlist.tracks:
-            for msg in pt:
-                if msg.channel == 9:
-                    rhythm = pt
-                    break
-            if rhythm:
-                break
-        if not rhythm:
-            rhythm = mido.MidiTrack()
-            added = True
-
-        # we now have a track to hold the metronome functions - copy into it
-        measure_copy = self.measure.copy()
-        while measure_copy:
-            rhythm.append(measure_copy.pop(0))
-        if added:
-            self.playlist.tracks.append(rhythm)
-                
-    def copy_song(self):
-        self.playlist = mido.MidiFile()
+    def make_rhythm_from_song(self):
+        self.rhythm_track.clear()
+        self.rhythm_track.name = 'MClick'
+        self.song.tracks.append(self.rhythm_track)
+        self.rhythmq.clear()
         ticks_per_beat = self.song.ticks_per_beat
-        for st in self.song.tracks:
-            pt = mido.MidiTrack()
-            ts = 4,4            
+        num_beats = 4
+        measure_count = 0
+        if self.song.tracks:
+            songtrack = self.song.tracks[0]
             measure_elapsed = 0
-            tpm = ts[0] * ticks_per_beat
-            for sm in st:
+            ticks_per_measure = num_beats * ticks_per_beat
+            for sm in songtrack:
                 if sm.is_meta:
-                    if   sm.type == 'time_signature':
-                        ts = sm.numerator,sm.denominator
-                        measure_elaped = 0
-                        self.copy_measure_to_playlist()
-                pt.append(sm)
-                measure_elapsed += sm.time
-                if measure_elapsed >= tpm:
-                    measure_elapsed = 0
-                    self.copy_measure_to_playlist()
-            self.playlist.tracks.append(pt)
-            
-        #print(self.playlist)
-        # default to time signature from the song
-        # after loading song, copy the metronome track to match                
-        # loading song may be discontinuous        
+                    if sm.type == 'time_signature':
+                        measure_elapsed = 0
+                        new_meas = settings
+                        new_meas['num_beats'] = num_beats
+                        self.rhythmq.append(make_template_measure(new_meas))
+                else:
+                    measure_elapsed += sm.time
+                    if measure_elapsed >= ticks_per_measure:
+                        measure_elapsed = 0
+                        new_meas = settings
+                        new_meas['num_beats'] = num_beats
+                        self.rhythmq.append(make_template_measure(new_meas))
+        else:
+            self.rhythmq.append(make_template_measure(self.settings))
 
-    def load_song(self, name):
-        self.song = mido.MidiFile(name)
-        self.copy_song()
-                
-        
+        for meas in self.rhythmq:
+            mcopy = meas.copy()
+            while mcopy:
+                m = mcopy.pop(0)
+                self.rhythm_track.append(mcopy.pop(0))
+
     def update(self, params):
-        self.measure = make_template_measure(params)
-        self.settings = params
+        if params:
+            self.settings = params
+        else:
+            self.settings = Settings()
 
     def run(self):
         self.midi_setup()
-        if not self.song:
-            print('no song, just metronome')
-            self.copy_measure_to_playlist()
-        print(self.playlist)
+        self.play_index = 0
         while not self.stopping.is_set():
-            for msg in self.playlist.play():
+            if self.playlist:
+                self.song = mido.MidiFile(self.playlist[self.play_index])
+            else:
+                self.song = mido.MidiFile()
+            self.make_rhythm_from_song()
+
+            for msg in self.song.play():
                 if self.stopping.is_set():
                     break # break only goes out one loop
                 self.midi_out.send(msg)
-                
+
+            self.play_index += 1
+            if self.play_index >= len(self.playlist):
+                self.play_index = 0
+
             if self.stopping.is_set():
                 break
+
+    def open_files(self, path):
+        self.playlist.clear()
+        self.play_index = None
+
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_file() and  entry.name.endswith('.mid'):
+                    self.playlist.append(entry)
+        if len(self.playlist) > 0:
+            self.play_index = 0
 
 if __name__ == '__main__':
     t = Ticker(settings)
     #t.load_song('/home/nps/projects/hymns/cwm_rhondda.mid')
+    t.open_files('demo')
     try:
         t.run()
     except KeyboardInterrupt:
