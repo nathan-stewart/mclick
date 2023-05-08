@@ -5,77 +5,56 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 
 
-def build_plottables(events):
-    """
-    Builds plottable objects for MIDI events.
-    """
-    # Collect note numbers for all events
-    note_numbers = sorted(list(set(n for ch_events in events.values() for n, *_ in ch_events)))
-
-    # Create a list of channel names for the plot legend
-    channel_names = [f"Ch {ch}" for ch in sorted(events.keys())]
-
-    # Create a 2D array of note durations for each channel and note
-    note_durations = np.zeros((len(channel_names), len(note_numbers)))
-    time_values = None  # Placeholder for time values
-
-    for i, ch in enumerate(sorted(events.keys())):
-        try:
-            for note, start_time, duration in events[ch]:
-                if time_values is None:
-                    time_values = np.zeros(len(events[ch]))
-
-                if duration == 0:
-                    # Assign a default duration value for notes without a corresponding note-off event
-                    duration = 1
-                try:
-                    note_durations[i, note_numbers.index(note)] = duration
-                    time_values[note_numbers.index(note)] = start_time
-                except ValueError:
-                    continue
-        except ValueError:
-            continue
-    return time_values, note_durations, channel_names
-
-
 def plot_midi_events(events):
-    """
-    Plots MIDI events organized by channel and note number.
-    """
-    print_events(events)
-    import sys
-    sys.exit(0)
-    # Build the plottable objects
-    time_values, note_durations, channel_names = build_plottables(events)
+    # Prepare data for plotting
+    channels = sorted(events.keys())
+    note_numbers = set()
+    data = {}
 
-    # Plot the note durations using a stacked bar plot
-    fig, ax = plt.subplots()
-    ax.bar(time_values, note_durations[0], align='center')
+    # Collect note numbers with actual note information
+    for channel in channels:
+        data[channel] = []
+        for note_number, note_events in events[channel].items():
+            if any(note_event[1] is not None for note_event in note_events):
+                data[channel].append(note_number)
+                note_numbers.add(note_number)
 
-    for i in range(1, len(channel_names)):
-        ax.bar(
-            time_values,
-            note_durations[i],
-            bottom=np.sum(note_durations[:i], axis=0),
-            align='center'
-        )
+    # Plotting
+    plt.figure(figsize=(12, 6))
 
-    # Format the plot
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Duration")
-    ax.legend(channel_names, loc='upper right')
+    min_note_number = min(note_numbers)
+    max_note_number = max(note_numbers)
+
+    for channel in channels:
+        if channel not in data:
+            continue
+        for note_number in data[channel]:
+            note_events = events[channel][note_number]
+            for note_event in note_events:
+                start_time = note_event[0]
+                stop_time = note_event[1]
+                if stop_time is not None:
+                    duration = stop_time - start_time
+                    plt.barh(note_number, duration, left=start_time, height=0.7, alpha=0.7,
+                             color=f'C{channel}')
+                else:
+                    plt.scatter(start_time, note_number, marker='|', color=f'C{channel}', s=100)
+
+    # Configure plot
+    plt.xlabel('Time')
+    plt.ylabel('Channel')
+    plt.title('MIDI Events')
+    plt.yticks(list(range(len(channels))), [f'Ch {channel}' for channel in channels])
+    plt.ylim(min_note_number - 1, max_note_number + 1)
+    plt.grid(True)
+    plt.tight_layout()
+
+    # Display or save the plot
     plt.show()
 
-def print_events(events):
-    for channel in sorted(events.keys()):
-        print('channel = %d' % channel)
-    import sys
-    sys.exit(0)
 
 def parse_midi_file(mid):
     """
-    Parse the contents of a mido.MidiFile into a dictionary of events.
-
     Returns:
         A dictionary where each key is a MIDI channel, and the value is a nested dictionary.
         All tracks processed, but it is assumed that one track = one channel and vice versa
@@ -94,7 +73,7 @@ def parse_midi_file(mid):
         if event:
             start = event[0]
             event.clear()
-            event = (start, cumulative_ticks)
+            event.extend( [start, cumulative_ticks] )
 
     for i, track in enumerate(mid.tracks):
         cumulative_ticks = 0
@@ -114,5 +93,19 @@ def plot_midi_file(m):
     plot_midi_events(parse_midi_file(m))
 
 if __name__ == '__main__':
+    events = {
+    0: {
+        60: [[0, 100], [200, None], [300, 150]],
+        62: [[100, 120], [250, None]],
+        64: [[150, None]]
+    },
+    1: {
+        65: [[50, 80], [180, 110]],
+        67: [[120, 130], [220, 140], [270, None]]    },
+    9: {
+        38: [[0, None], [180, None]],
+        62: [[120, None], [220, None], [270, None]]    }}
+    plot_midi_events(events)
+
     f = mido.MidiFile('demo/cwm_rhondda.mid')
     plot_midi_file(f)
