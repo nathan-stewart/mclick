@@ -6,9 +6,10 @@ import math
 import mido
 import sys
 import os
-
 from settings import settings
 from buildMeasure import make_template_measure
+
+from plotMeasure import plot_midi
 
 class Ticker(threading.Thread):
     def __init__(self, params = None):
@@ -48,10 +49,10 @@ class Ticker(threading.Thread):
             self.midi_out.send(mido.Message('start'))
 
     def make_rhythm_from_song(self):
-        self.rhythm_track.clear()
-        self.rhythm_track.name = 'MClick'
-        self.song.tracks.append(self.rhythm_track)
         self.rhythmq.clear()
+        self.rhythm_track.clear()
+        self.rhythm_track = self.song.add_track('MClick')
+
         ticks_per_beat = self.song.ticks_per_beat
         num_beats = 4
         measure_count = 0
@@ -65,14 +66,14 @@ class Ticker(threading.Thread):
                         measure_elapsed = 0
                         new_meas = settings
                         new_meas['num_beats'] = num_beats
-                        self.rhythmq.append(make_template_measure(new_meas))
+                        self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
                 else:
                     measure_elapsed += sm.time
                     if measure_elapsed >= ticks_per_measure:
                         measure_elapsed = 0
                         new_meas = settings
                         new_meas['num_beats'] = num_beats
-                        self.rhythmq.append(make_template_measure(new_meas))
+                        self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
         else:
             self.rhythmq.append(make_template_measure(self.settings))
 
@@ -80,7 +81,7 @@ class Ticker(threading.Thread):
             mcopy = meas.copy()
             while mcopy:
                 m = mcopy.pop(0)
-                self.rhythm_track.append(mcopy.pop(0))
+                self.rhythm_track.append(m)
 
     def update(self, params):
         if params:
@@ -97,7 +98,7 @@ class Ticker(threading.Thread):
             else:
                 self.song = mido.MidiFile()
             self.make_rhythm_from_song()
-
+            plot_midi(self.song)
             for msg in self.song.play():
                 if self.stopping.is_set():
                     break # break only goes out one loop
