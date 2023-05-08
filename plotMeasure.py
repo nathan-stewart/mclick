@@ -120,6 +120,18 @@ def parse_midi_file(mid):
                         silence(oldest_ringing(notes))
     return events
 
+def plot_midi(f):
+    m = None
+    if isinstance(f, str):
+        m = mido.MidiFile(f)
+    elif isinstance(f, mido.MidiFile):
+        m = f
+    else:
+        raise TypeError
+
+    e = parse_midi_file(m)
+    print_events(e)
+    plot_midi_events(e)
 
 if __name__ == '__main__':
     f = mido.MidiFile('demo/cwm_rhondda.mid')
