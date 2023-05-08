@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def plot_midi_events(events):
     # Extract note numbers from events dictionary
     note_numbers = [note for channel_events in events.values() for note in channel_events]
-    print(note_numbers)
+
     # Check if note_numbers is empty
     if not note_numbers:
         print("No MIDI events to plot.")
@@ -122,38 +122,6 @@ def parse_midi_file(mid):
 
 
 if __name__ == '__main__':
-    events = {
-    0: {
-        60: [[0, 100], [200, None], [300, 150]],
-        62: [[100, 120], [250, None]],
-        64: [[150, None]]
-    },
-    1: {
-        65: [[50, 80], [180, 110]],
-        67: [[120, 130], [220, 140], [270, None]]    },
-    9: {
-        38: [[0, None], [180, None]],
-        62: [[120, None], [220, None], [270, None]]    }}
-
-    # first note_on in cwm_rhondda is 
-    #>>> f.tracks[0][10]
-    #Message('note_on', channel=0, note=55, velocity=110, time=0)
-    # and turns off at 
-    #>>> f.tracks[0][13]
-    #Message('note_on', channel=0, note=55, velocity=0, time=455)
-
-    # but seeing no note_offs and times are wrong
-    # 55: 000         025         025         013         025         000
-
-
-    #plot_midi_events(events)
-    #print_events(events)
     f = mido.MidiFile('demo/cwm_rhondda.mid')
-    #f = mido.MidiFile()
-    #t = mido.MidiTrack()
-    #f.tracks.append(t)
-    #t.append(mido.Message('note_on', channel=0, note=55, velocity=110, time=0))
-    #t.append(mido.Message('note_on', channel=0, note=55, velocity=0, time=455))
-    e = parse_midi_file(f)
-    print_events(e)
-    plot_midi_events(e)
+    events = parse_midi_file(f)
+    plot_midi_events(events)
