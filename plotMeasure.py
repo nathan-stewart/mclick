@@ -4,8 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
+import matplotlib.pyplot as plt
 
 def plot_midi_events(events):
+    # Extract note numbers from events dictionary
+    note_numbers = [note for channel_events in events.values() for note in channel_events]
+    print(note_numbers)
+    # Check if note_numbers is empty
+    if not note_numbers:
+        print("No MIDI events to plot.")
+        return
+
+    min_note_number = min(note_numbers)
+    max_note_number = max(note_numbers)
     # Prepare data for plotting
     channels = sorted(events.keys())
     note_numbers = set()
@@ -52,6 +63,23 @@ def plot_midi_events(events):
     # Display or save the plot
     plt.show()
 
+def print_events(events):
+    for channel in sorted(events.keys()):
+        print('Ch % 2d: [' % channel)
+        for nn in sorted(events[channel].keys()):
+            notes = '% 2d: ' % nn
+            count = 0
+            for ne in events[channel][nn]:
+                if ne[1]:
+                    notes += '%03d - %03d' % (ne[0], ne[1])
+                else:
+                    notes += '%03d      ' % ne[0]
+                notes += '   '
+                count += 1
+                if count > 5:
+                    break
+            print('           %s' % notes)
+        print('       ]')
 
 def parse_midi_file(mid):
     """
@@ -66,8 +94,11 @@ def parse_midi_file(mid):
 
     # Takes a list of note on/off events for a single channel/note number
     # Returns the oldest one without a stop event [start,stop]
-    def oldest_ringing(notes): 
-        return next((n for n in notes if n[1]), None)
+    def oldest_ringing(notes):
+        for n in notes:
+            if not n[1]:
+                return n
+        return None
 
     def silence(event):
         if event:
@@ -89,8 +120,6 @@ def parse_midi_file(mid):
                         silence(oldest_ringing(notes))
     return events
 
-def plot_midi_file(m):
-    plot_midi_events(parse_midi_file(m))
 
 if __name__ == '__main__':
     events = {
@@ -105,7 +134,26 @@ if __name__ == '__main__':
     9: {
         38: [[0, None], [180, None]],
         62: [[120, None], [220, None], [270, None]]    }}
-    plot_midi_events(events)
 
+    # first note_on in cwm_rhondda is 
+    #>>> f.tracks[0][10]
+    #Message('note_on', channel=0, note=55, velocity=110, time=0)
+    # and turns off at 
+    #>>> f.tracks[0][13]
+    #Message('note_on', channel=0, note=55, velocity=0, time=455)
+
+    # but seeing no note_offs and times are wrong
+    # 55: 000         025         025         013         025         000
+
+
+    #plot_midi_events(events)
+    #print_events(events)
     f = mido.MidiFile('demo/cwm_rhondda.mid')
-    plot_midi_file(f)
+    #f = mido.MidiFile()
+    #t = mido.MidiTrack()
+    #f.tracks.append(t)
+    #t.append(mido.Message('note_on', channel=0, note=55, velocity=110, time=0))
+    #t.append(mido.Message('note_on', channel=0, note=55, velocity=0, time=455))
+    e = parse_midi_file(f)
+    print_events(e)
+    plot_midi_events(e)
