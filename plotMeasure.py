@@ -7,19 +7,8 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 
 def plot_midi_events(events):
-    # Extract note numbers from events dictionary
-    note_numbers = [note for channel_events in events.values() for note in channel_events]
-
-    # Check if note_numbers is empty
-    if not note_numbers:
-        print("No MIDI events to plot.")
-        return
-
-    min_note_number = min(note_numbers)
-    max_note_number = max(note_numbers)
     # Prepare data for plotting
     channels = sorted(events.keys())
-    note_numbers = set()
     data = {}
 
     # Collect note numbers with actual note information
@@ -28,35 +17,29 @@ def plot_midi_events(events):
         for note_number, note_events in events[channel].items():
             if any(note_event[1] is not None for note_event in note_events):
                 data[channel].append(note_number)
-                note_numbers.add(note_number)
-
     # Plotting
     plt.figure(figsize=(12, 6))
 
-    min_note_number = min(note_numbers)
-    max_note_number = max(note_numbers)
+    current_time = 0  # Current time position
 
-    for channel in channels:
-        if channel not in data:
-            continue
-        for note_number in data[channel]:
-            note_events = events[channel][note_number]
+    for channel, channel_data in events.items():
+        for note_number, note_events in channel_data.items():
             for note_event in note_events:
-                start_time = note_event[0]
-                stop_time = note_event[1]
+                start_time = current_time + note_event[0]
+                stop_time = None if note_event[1] is None else current_time + note_event[1]
+
                 if stop_time is not None:
                     duration = stop_time - start_time
-                    plt.barh(note_number, duration, left=start_time, height=0.7, alpha=0.7,
-                             color=f'C{channel}')
+                    plt.barh(note_number, duration, left=start_time, height=0.7, alpha=0.7, color=f'C{channel}')
                 else:
                     plt.scatter(start_time, note_number, marker='|', color=f'C{channel}', s=100)
+                current_time += note_event[0]
 
     # Configure plot
     plt.xlabel('Time')
-    plt.ylabel('Channel')
+    plt.ylabel('Note Number')
     plt.title('MIDI Events')
-    plt.yticks(list(range(len(channels))), [f'Ch {channel}' for channel in channels])
-    plt.ylim(min_note_number - 1, max_note_number + 1)
+    plt.yticks(list(range(len(events.keys()))), [f'Ch {channel}' for channel in events.keys()])
     plt.grid(True)
     plt.tight_layout()
 
@@ -68,17 +51,17 @@ def print_events(events):
         print('Ch % 2d: [' % channel)
         for nn in sorted(events[channel].keys()):
             notes = '% 2d: ' % nn
-            count = 0
-            for ne in events[channel][nn]:
+            notes += ' '
+            for i, ne in enumerate(events[channel][nn]):
                 if ne[1]:
                     notes += '%03d - %03d' % (ne[0], ne[1])
                 else:
                     notes += '%03d      ' % ne[0]
                 notes += '   '
-                count += 1
-                if count > 5:
-                    break
-            print('           %s' % notes)
+                if (i> 1 and i % 5 == 0):
+                    notes += '\n'
+                    notes += '      '
+            print('%s' % notes)
         print('       ]')
 
 def parse_midi_file(mid):
