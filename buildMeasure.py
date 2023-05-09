@@ -2,7 +2,7 @@
 import mido
 from sortedcontainers import SortedList
 from settings import settings
-import plotMeasure
+from plotMeasure import plot_midi
 
 class AbstimeMessage:
     def __init__(self, t, m):
@@ -12,7 +12,7 @@ class AbstimeMessage:
     def __lt__(self, other):
         return self.t < other.t
 
-def make_template_measure(params):
+def make_template_measure(params, ppq=480):
     rhythmq = SortedList()
     eight_track = SortedList()
 
@@ -35,7 +35,6 @@ def make_template_measure(params):
                 que.add(AbstimeMessage(t,msg))
             last_t = t
 
-    ppq = 400
     beat_count = params['num_beats']
     clock = [int(n * ppq / 24.0) for n in range(24 * beat_count)]
     enqueue(rhythmq,'clock', clock)
@@ -76,8 +75,8 @@ def make_template_measure(params):
                          not compound) else False
     if subdivide:
         # change the eight notes to the same sound as sixteenths
-        for m in eight_track:
-            m.note = params['sixteenths']['note']
+        for abstime in eight_track:
+            abstime.m.note = params['sixteenths']['note']
 
     sixteenths = []
     if compound:
@@ -92,11 +91,14 @@ def make_template_measure(params):
     # we kept the eighths separate until now - merge them into the priority queue
     for e in eight_track:
         rhythmq.add(e)
-    #print(rhythmq)
-    mixed = []
+
+    percussion = mido.MidiTrack()
     while rhythmq:
-        mixed.append(rhythmq.pop(0).m)
-    return mixed
+        percussion.append(rhythmq.pop(0).m)
+    return percussion
 
 if __name__ == "__main__":
-    make_template_measure(settings)
+    m = make_template_measure(settings)
+    f = mido.MidiFile()
+    f.tracks.append(m)
+    plot_midi(f)
