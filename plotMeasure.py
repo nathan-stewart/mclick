@@ -6,7 +6,7 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 
-def plot_midi_events(events):
+def plot_midi_events(events, duration):
     # Prepare data for plotting
     channels = sorted(events.keys())
     data = {}
@@ -17,34 +17,42 @@ def plot_midi_events(events):
         for note_number, note_events in events[channel].items():
             if any(note_event[1] is not None for note_event in note_events):
                 data[channel].append(note_number)
-    # Plotting
-    plt.figure(figsize=(12, 6))
 
-    current_time = 0  # Current time position
 
-    for channel, channel_data in events.items():
-        for note_number, note_events in channel_data.items():
+    # Determine the unique note numbers across all channels
+    note_numbers = sorted(set(note_number for channel_data in events.values() for note_number in channel_data.keys()))
+
+    # Create a binary matrix to represent the piano roll grid
+    matrix = np.zeros((len(note_numbers), duration))
+
+    for i, note_number in enumerate(note_numbers):
+        for channel, channel_data in events.items():
+            note_events = channel_data.get(note_number, [])
             for note_event in note_events:
-                start_time = current_time + note_event[0]
-                stop_time = None if note_event[1] is None else current_time + note_event[1]
-
+                start_time = note_event[0]
+                stop_time = note_event[1]
                 if stop_time is not None:
-                    duration = stop_time - start_time
-                    plt.barh(note_number, duration, left=start_time, height=0.7, alpha=0.7, color=f'C{channel}')
+                    matrix[i, start_time:stop_time] = 1
                 else:
-                    plt.scatter(start_time, note_number, marker='|', color=f'C{channel}', s=100)
-                current_time += note_event[0]
+                    matrix[i, start_time] = 1
 
-    # Configure plot
+    # Plot the piano roll grid
+    plt.imshow(matrix, aspect='auto', cmap='Greys', origin='lower', extent=[0, duration, 0, len(note_numbers)])
+
+    # Set y-axis tick labels and limits
+    plt.yticks(np.arange(len(note_numbers)), note_numbers)
+    plt.ylim(-0.5, len(note_numbers) - 0.5)
+
+    # Set x-axis label
     plt.xlabel('Time')
-    plt.ylabel('Note Number')
-    plt.title('MIDI Events')
-    plt.yticks(list(range(len(events.keys()))), [f'Ch {channel}' for channel in events.keys()])
-    plt.grid(True)
-    plt.tight_layout()
 
-    # Display or save the plot
+    # Set plot title
+    plt.title('MIDI Events - Piano Roll')
+
+    plt.tight_layout()
     plt.show()
+
+
 
 def print_events(events):
     for channel in sorted(events.keys()):
@@ -88,7 +96,7 @@ def parse_midi_file(mid):
             start = event[0]
             event.clear()
             event.extend( [start, cumulative_ticks] )
-
+    max_ticks = 0
     for i, track in enumerate(mid.tracks):
         cumulative_ticks = 0
         for msg in track:
@@ -101,7 +109,8 @@ def parse_midi_file(mid):
                         notes.append( [cumulative_ticks, None] )
                     else: 
                         silence(oldest_ringing(notes))
-    return events
+            max_ticks = max(cumulative_ticks,max_ticks)
+    return (events, max_ticks)
 
 def plot_midi(f):
     m = None
@@ -112,11 +121,12 @@ def plot_midi(f):
     else:
         raise TypeError
 
-    e = parse_midi_file(m)
-    print_events(e)
-    plot_midi_events(e)
+    events, duration = parse_midi_file(m)
+    print_events(events)
+    plot_midi_events(events, duration)
 
 if __name__ == '__main__':
     f = mido.MidiFile('demo/cwm_rhondda.mid')
-    events = parse_midi_file(f)
-    plot_midi_events(events)
+    events, duration = parse_midi_file(f)
+    plot_midi_events(events, duration)
+
