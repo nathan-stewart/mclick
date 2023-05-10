@@ -5,8 +5,8 @@ from collections import defaultdict
 
 # Takes a list of note on/off events for a single channel/note number
 # Returns the oldest one without a stop event [start,stop]
-def oldest_ringing(notes):
-    for n in notes:
+def newest_ringing(notes):
+    for n in reversed(notes):
         if not n[1]:
             return n
     return None
@@ -14,17 +14,13 @@ def oldest_ringing(notes):
 # This class builds a time ordered representation of midi events
 # It's essentially a different view of a Midi file
 class EventQue:
-    def __init__(self):
-        self.events = defaultdict(lambda: defaultdict(list))
-        self.duration = 0
-
     def silence(self, event):
         if event:
             start = event[0]
             event.clear()
-            event.extend( [start, self.cumulative_ticks] )
+            event.extend( [start, self.duration] )
 
-    def parse_midi(self, mid):
+    def __init__(self, midi):
         """
         Returns:
             A dictionary where each key is a MIDI channel, and the value is a nested dictionary.
@@ -32,12 +28,14 @@ class EventQue:
             The nested dictionary has note numbers as keys, and the values are lists of timestamp
             tuples (start_ticks, stop_ticks) in ticks where stop_ticks is None if no note off occured
         """
-        ticks_per_beat = mid.ticks_per_beat
-        self.cumulative_ticks = 0
+        self.events = defaultdict(lambda: defaultdict(list))
+
+        ticks_per_beat = midi.ticks_per_beat
+        self.duration = 0
         self.measure_count = 0
-        num_beats = 4
-        for i, track in enumerate(mid.tracks):
-            cumulative_ticks = 0
+        num_beats = 4        
+        for i, track in enumerate(midi.tracks):
+            duration = 0
             measure_count = 0
             ticks_per_measure = ticks_per_beat * num_beats
             for msg in track:
@@ -47,24 +45,37 @@ class EventQue:
                     ticks_per_measure = ticks_per_beat * num_beats
                     #self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
                 elif not msg.is_meta:
-                    cumulative_ticks += msg.time
+                    duration += msg.time
                     if msg.type == 'note_on' or msg.type == 'note_off':
                         notes = self.events[msg.channel][msg.note]
                         if (msg.type == 'note_on' and msg.velocity > 0): # note on
-                            notes.append( [cumulative_ticks, None] )
+                            notes.append( [duration, None] )
                         else:
-                            self.silence(oldest_ringing(notes))
+                            ringing = newest_ringing(notes)
+                            self.silence(ringing)
                 if measure_elapsed >= ticks_per_measure:
-                    print('new measure = measure #%d on track %d' % (measure_count, i))
                     measure_elapsed = 0
                     new_meas = settings
                     measure_count += 1
                     self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
                 self.measure_count = max(self.measure_count, measure_count)
-                self.cumulative_ticks = max(self.cumulative_ticks, cumulative_ticks)
-        return (self.events, self.cumulative_ticks)
+                self.duration= max(self.duration, duration)
 
+    def channels(self):
+        return self.events
+    
+    def notes(self, channel):
+        return self.events[channel].keys()
 
+    def note_events(self, channel, note):
+        return self.events[channel][note]
+
+    def unique_note_set(self):
+        notes = set()
+        for ch in sorted(self.events.keys()):
+            for nn in sorted(self.events[ch].keys()):
+                notes.add( (ch,nn) )
+        return notes
 
     def __str__(self):
         s = ''
@@ -83,13 +94,16 @@ class EventQue:
                         notes += '\n'
                         notes += '      '
                 s += '%s' % notes
-            s += '       ]'
+            s += '       ]\n'
+        s += 'duration = %d' % self.duration
         return s
 
 if __name__ == "__main__":
-    eq = EventQue()
-    eq.parse_midi(mido.MidiFile('demo/cwm_rhondda.mid'))
+    eq = EventQue(mido.MidiFile('demo/cwm_rhondda.mid'))
     print(str(eq))
+    for ch in eq.events.keys():
+        print(eq.events[ch][-1])
+    print(eq.events[0][55])
 
 
 
