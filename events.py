@@ -20,7 +20,7 @@ class EventQue:
             event.clear()
             event.extend( [start, self.duration] )
 
-    def __init__(self, midi):
+    def __init__(self, midi = None):
         """
         Returns:
             A dictionary where each key is a MIDI channel, and the value is a nested dictionary.
@@ -28,8 +28,10 @@ class EventQue:
             The nested dictionary has note numbers as keys, and the values are lists of timestamp
             tuples (start_ticks, stop_ticks) in ticks where stop_ticks is None if no note off occured
         """
-        self.events = defaultdict(lambda: defaultdict(list))
+        if not midi:
+            midi = mido.MidiFile()
 
+        self.events = defaultdict(lambda: defaultdict(list))
         ticks_per_beat = midi.ticks_per_beat
         self.duration = 0
         self.measure_count = 0
@@ -73,7 +75,7 @@ class EventQue:
         for ch in sorted(self.events.keys()):
             for nn in sorted(self.events[ch].keys()):
                 notes.add( (ch,nn) )
-        return notes
+        return sorted(notes)
 
     def __str__(self):
         s = ''
@@ -97,7 +99,7 @@ class EventQue:
         return s
 
 if __name__ == "__main__":
-    m = mido.MidiFile('demo/note-on.mid')
+    m = mido.MidiFile('demo/redeemed-melody.mid')
     for n in m.tracks[0]:
         print(n)
     eq = EventQue(m)
