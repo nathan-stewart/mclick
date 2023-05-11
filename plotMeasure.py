@@ -5,112 +5,47 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
+from events import EventQue
 
-def plot_midi_events(events, duration):
+def plot_midi_events(events):
     # Prepare data for plotting
-    channels = sorted(events.keys())
-    data = {}
-
-    # Collect note numbers with actual note information
-    for channel in channels:
-        data[channel] = []
-        for note_number, note_events in events[channel].items():
-            if any(note_event[1] is not None for note_event in note_events):
-                data[channel].append(note_number)
-
-
-    # Determine the unique note numbers across all channels
-    note_numbers = sorted(set(note_number for channel_data in events.values() for note_number in channel_data.keys()))
+    note_numbers = events.unique_note_set()
 
     # Create a binary matrix to represent the piano roll grid
-    matrix = np.zeros((len(note_numbers), duration))
+    matrix = np.zeros((events.duration, len(note_numbers)))
 
-    for i, note_number in enumerate(note_numbers):
-        for channel, channel_data in events.items():
-            note_events = channel_data.get(note_number, [])
-            for note_event in note_events:
-                start_time = note_event[0]
-                stop_time = note_event[1]
-                if stop_time is not None:
-                    matrix[i, start_time:stop_time] = 1
-                else:
-                    matrix[i, start_time] = 1
+    for channel, note_number in note_numbers:
+        for start_time, stop_time in events.events[channel][note_number]:
+            if stop_time:
+                matrix[start_time:stop_time, note_numbers.index((channel, note_number))] = 1
+            else:
+                matrix[start_time, note_numbers.index((channel, note_number))] = 1
+
+    # Set the desired number of pixels for the y-axis
+    pixels_per_note = 20  # Adjust as needed
+
+    # Create the subplots
+    fig, ax = plt.subplots()
 
     # Plot the piano roll grid
-    plt.imshow(matrix, aspect='auto', cmap='Greys', origin='lower', extent=[0, duration, 0, len(note_numbers)])
+    ax.imshow(matrix.T, aspect='auto', cmap='binary', origin='lower', interpolation='nearest')
 
-    # Set y-axis tick labels and limits
-    plt.yticks(np.arange(len(note_numbers)), note_numbers)
-    plt.ylim(-0.5, len(note_numbers) - 0.5)
+    # Set the y-axis tick positions and labels
+    ax.set_yticks(np.arange(len(note_numbers)))
+    ax.set_yticklabels(note_numbers)
 
-    # Set x-axis label
-    plt.xlabel('Time')
+    # Set the x-axis label
+    ax.set_xlabel('Time')
 
-    # Set plot title
-    plt.title('MIDI Events - Piano Roll')
+    # Set the plot title
+    ax.set_title('MIDI Events - Piano Roll')
+
+    # Adjust the figure height based on the number of notes and desired pixels per note
+    figure_height = len(note_numbers) * pixels_per_note
+    fig.set_figheight(figure_height)
 
     plt.tight_layout()
     plt.show()
-
-
-
-def print_events(events):
-    for channel in sorted(events.keys()):
-        print('Ch % 2d: [' % channel)
-        for nn in sorted(events[channel].keys()):
-            notes = '% 2d: ' % nn
-            notes += ' '
-            for i, ne in enumerate(events[channel][nn]):
-                if ne[1]:
-                    notes += '%03d - %03d' % (ne[0], ne[1])
-                else:
-                    notes += '%03d      ' % ne[0]
-                notes += '   '
-                if (i> 1 and i % 5 == 0):
-                    notes += '\n'
-                    notes += '      '
-            print('%s' % notes)
-        print('       ]')
-
-def parse_midi_file(mid):
-    """
-    Returns:
-        A dictionary where each key is a MIDI channel, and the value is a nested dictionary.
-        All tracks processed, but it is assumed that one track = one channel and vice versa
-        The nested dictionary has note numbers as keys, and the values are lists of timestamp
-        tuples (start_ticks, stop_ticks) in ticks where stop_ticks is None if no note off occured
-    """
-    events = defaultdict(lambda: defaultdict(list))
-    cumulative_ticks = 0
-
-    # Takes a list of note on/off events for a single channel/note number
-    # Returns the oldest one without a stop event [start,stop]
-    def oldest_ringing(notes):
-        for n in notes:
-            if not n[1]:
-                return n
-        return None
-
-    def silence(event):
-        if event:
-            start = event[0]
-            event.clear()
-            event.extend( [start, cumulative_ticks] )
-    max_ticks = 0
-    for i, track in enumerate(mid.tracks):
-        cumulative_ticks = 0
-        for msg in track:
-            cumulative_ticks = 0
-            if not msg.is_meta:
-                cumulative_ticks += msg.time
-                if msg.type == 'note_on' or msg.type == 'note_off':
-                    notes = events[msg.channel][msg.note]
-                    if (msg.type == 'note_on' and msg.velocity > 0): # note on
-                        notes.append( [cumulative_ticks, None] )
-                    else: 
-                        silence(oldest_ringing(notes))
-            max_ticks = max(cumulative_ticks,max_ticks)
-    return (events, max_ticks)
 
 def plot_midi(f):
     m = None
@@ -126,7 +61,24 @@ def plot_midi(f):
     plot_midi_events(events, duration)
 
 if __name__ == '__main__':
-    f = mido.MidiFile('demo/cwm_rhondda.mid')
-    events, duration = parse_midi_file(f)
-    plot_midi_events(events, duration)
+    mf = mido.MidiFile()
+    mf.tracks.append(mido.MidiTrack())
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=80, time=0, note=72))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=0, time=100, note=72))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=80, time=0, note=74))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=0, time=100, note=74))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=80, time=0, note=72))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=0, time=100, note=72))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=80, time=400, note=32))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=80, time=0, note=42))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=0, time=100, note=32))
+    mf.tracks[0].append(mido.Message('note_on', channel=0, velocity=0, time=00, note=42))
+    eventq = EventQue(mf)
+    print(str(eventq))
+
+    plot_midi_events(eventq)
+
+    mf = mido.MidiFile('demo/redeemed-melody.mid')
+    eventq = EventQue(mf)
+    plot_midi_events(eventq)
 
