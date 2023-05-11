@@ -39,13 +39,9 @@ class EventQue:
             measure_count = 0
             ticks_per_measure = ticks_per_beat * num_beats
             for msg in track:
-                if msg.type == 'time_signature':
-                    measure_elapsed = 0
-                    num_beats = msg.numerator
-                    ticks_per_measure = ticks_per_beat * num_beats
-                    #self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
-                elif not msg.is_meta:
+                if hasattr(msg, 'time'):
                     duration += msg.time
+                    self.duration= max(self.duration, duration)
                     if msg.type == 'note_on' or msg.type == 'note_off':
                         notes = self.events[msg.channel][msg.note]
                         if (msg.type == 'note_on' and msg.velocity > 0): # note on
@@ -53,13 +49,15 @@ class EventQue:
                         else:
                             ringing = newest_ringing(notes)
                             self.silence(ringing)
-                if measure_elapsed >= ticks_per_measure:
+                if msg.type == 'time_signature':
                     measure_elapsed = 0
-                    new_meas = settings
+                    num_beats = msg.numerator
+                    ticks_per_measure = ticks_per_beat * num_beats
+                    #self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
+                if duration >= ticks_per_measure:
+                    duration = 0
                     measure_count += 1
-                    self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
                 self.measure_count = max(self.measure_count, measure_count)
-                self.duration= max(self.duration, duration)
 
     def channels(self):
         return self.events
@@ -80,7 +78,7 @@ class EventQue:
     def __str__(self):
         s = ''
         for channel in sorted(self.events.keys()):
-            s = 'Ch % 2d: [' % channel
+            s = 'Ch % 2d: [ ' % channel
             for nn in sorted(self.events[channel].keys()):
                 notes = '% 2d: ' % nn
                 notes += ' '
@@ -93,17 +91,14 @@ class EventQue:
                     if (i> 1 and i % 5 == 0):
                         notes += '\n'
                         notes += '      '
-                s += '%s' % notes
-            s += '       ]\n'
+                s += '%s\n' % notes
+            s += '         ]\n'
         s += 'duration = %d' % self.duration
         return s
 
 if __name__ == "__main__":
-    eq = EventQue(mido.MidiFile('demo/cwm_rhondda.mid'))
+    m = mido.MidiFile('demo/note-on.mid')
+    for n in m.tracks[0]:
+        print(n)
+    eq = EventQue(m)
     print(str(eq))
-    for ch in eq.events.keys():
-        print(eq.events[ch][-1])
-    print(eq.events[0][55])
-
-
-
