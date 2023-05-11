@@ -69,13 +69,27 @@ class EventQue:
 
     def note_events(self, channel, note):
         return self.events[channel][note]
-
+    
     def unique_note_set(self):
         notes = set()
         for ch in sorted(self.events.keys()):
             for nn in sorted(self.events[ch].keys()):
                 notes.add( (ch,nn) )
         return sorted(notes)
+    
+    def get_channel_ranges(self):
+        ranges = {}
+        for ch, nn in self.unique_note_set():
+            if ch not in ranges:
+                ranges[ch] = [nn,nn]
+            else:
+                channel = ranges[ch]
+                channel[0] = min(nn,channel[0])
+                channel[1] = max(nn,channel[1])
+        chlist = []
+        for c in ranges.keys():
+            chlist.append( ranges[c] )
+        return chlist
 
     def __str__(self):
         s = ''
@@ -99,8 +113,9 @@ class EventQue:
         return s
 
 if __name__ == "__main__":
-    m = mido.MidiFile('demo/redeemed-melody.mid')
+    m = mido.MidiFile('demo/redeemed.mid')
     for n in m.tracks[0]:
         print(n)
     eq = EventQue(m)
     print(str(eq))
+    print(eq.get_channel_ranges())
