@@ -14,11 +14,11 @@ def newest_ringing(notes):
 # This class builds a time ordered representation of midi events
 # It's essentially a different view of a Midi file
 class EventQue:
-    def silence(self, event):
+    def silence(self, event, now):
         if event:
             start = event[0]
             event.clear()
-            event.extend( [start, self.duration] )
+            event.extend( [start, now] )
 
     def __init__(self, midi = None):
         """
@@ -50,7 +50,7 @@ class EventQue:
                             notes.append( [duration, None] )
                         else:
                             ringing = newest_ringing(notes)
-                            self.silence(ringing)
+                            self.silence(ringing, duration)
                 if msg.type == 'time_signature':
                     measure_elapsed = 0
                     num_beats = msg.numerator
