@@ -34,32 +34,43 @@ class EventQue:
         self.events = defaultdict(lambda: defaultdict(list))
         ticks_per_beat = midi.ticks_per_beat
         self.duration = 0
-        self.measure_count = 0
-        num_beats = 4        
+        self.measures = []
+        num_beats = 4
+        beat_nom = 4
+        measure_elapsed = 0
         for i, track in enumerate(midi.tracks):
-            duration = 0
-            measure_count = 0
+            position = 0
             ticks_per_measure = ticks_per_beat * num_beats
             for msg in track:
                 if hasattr(msg, 'time'):
-                    duration += msg.time
-                    self.duration= max(self.duration, duration)
+                    position += msg.time
+                    measure_elapsed += msg.time
                     if msg.type == 'note_on' or msg.type == 'note_off':
                         notes = self.events[msg.channel][msg.note]
                         if (msg.type == 'note_on' and msg.velocity > 0): # note on
-                            notes.append( [duration, None] )
+                            notes.append( [position, None] )
                         else:
                             ringing = newest_ringing(notes)
-                            self.silence(ringing, duration)
+                            self.silence(ringing, position)
+
                 if msg.type == 'time_signature':
-                    measure_elapsed = 0
                     num_beats = msg.numerator
-                    ticks_per_measure = ticks_per_beat * num_beats
-                    #self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
-                if duration >= ticks_per_measure:
-                    duration = 0
-                    measure_count += 1
-                self.measure_count = max(self.measure_count, measure_count)
+                    beat_nom = msg.denominator
+                    if i == 0 and measure_elapsed > 0:
+                        self.measures.append(measure_elapsed)
+                    measure_elapsed = 0
+                    ticks_per_measure = ticks_per_beat * num_beats * 4 / beat_nom
+                    print('time_signature = %d/%d at %d (%d)' % (msg.numerator, msg.denominator, position, measure_elapsed))
+
+                if i == 0 and measure_elapsed >= ticks_per_measure:
+                    print('New measure of %d beats / %d ticks' % (num_beats, ticks_per_measure))
+                    measure_elapsed -= ticks_per_measure
+                    # Not sure if this is the right solution but it is assumed that all tracks have the same time signature so
+                    # keep track of the first. This is of course not always true but should be for the vast majority of cases
+                    self.measures.append(ticks_per_measure)
+            if i == 0 and measure_elapsed > 0:
+                self.measures.append(measure_elapsed)
+        self.duration = sum(self.measures)
 
     def channels(self):
         return self.events
@@ -76,21 +87,17 @@ class EventQue:
             for nn in sorted(self.events[ch].keys()):
                 notes.add( (ch,nn) )
         return sorted(notes)
-    
-    def get_channel_ranges(self):
+
+    def channel_note_ranges(self):
         ranges = {}
-        for ch, nn in self.unique_note_set():
-            if ch not in ranges:
+        for ch,nn in self.unique_note_set():
+            if ch not in ranges.keys():
                 ranges[ch] = [nn,nn]
             else:
-                channel = ranges[ch]
-                channel[0] = min(nn,channel[0])
-                channel[1] = max(nn,channel[1])
-        chlist = []
-        for c in ranges.keys():
-            chlist.append( ranges[c] )
-        return chlist
-
+                ranges[ch][0] = min(ranges[ch][0],nn)
+                ranges[ch][1] = max(ranges[ch][1],nn)
+        return ranges 
+    
     def __str__(self):
         s = ''
         for channel in sorted(self.events.keys()):
@@ -109,13 +116,15 @@ class EventQue:
                         notes += '      '
                 s += '%s\n' % notes
             s += '         ]\n'
-        s += 'duration = %d' % self.duration
+        s += 'duration = %d\n' % self.duration
+        s += 'measures = ' + ', '.join([str(t) for t in self.measures])
         return s
 
 if __name__ == "__main__":
-    m = mido.MidiFile('demo/redeemed.mid')
-    for n in m.tracks[0]:
-        print(n)
+    # redeemed-melody has 16 full bars worth of ticks
+    # split into measures of:
+    # 240, 1440 x 7, 1200, 240, 1440 * 7, 1200
+    m = mido.MidiFile('demo/redeemed-melody.mid')
     eq = EventQue(m)
     print(str(eq))
-    print(eq.get_channel_ranges())
+    print(eq.channel_note_ranges())
