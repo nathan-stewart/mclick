@@ -60,14 +60,11 @@ class EventQue:
                         self.measures.append(measure_elapsed)
                     measure_elapsed = 0
                     ticks_per_measure = ticks_per_beat * num_beats * 4 / beat_nom
-                    print('time_signature = %d/%d at %d (%d)' % (msg.numerator, msg.denominator, position, measure_elapsed))
 
                 if i == 0 and measure_elapsed >= ticks_per_measure:
-                    print('New measure of %d beats / %d ticks' % (num_beats, ticks_per_measure))
                     measure_elapsed -= ticks_per_measure
-                    # Not sure if this is the right solution but it is assumed that all tracks have the same time signature so
-                    # keep track of the first. This is of course not always true but should be for the vast majority of cases
                     self.measures.append(ticks_per_measure)
+
             if i == 0 and measure_elapsed > 0:
                 self.measures.append(measure_elapsed)
         self.duration = sum(self.measures)
