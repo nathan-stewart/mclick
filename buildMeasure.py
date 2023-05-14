@@ -2,7 +2,6 @@
 import mido
 from sortedcontainers import SortedList
 from settings import settings
-from plotMeasure import plot_midi
 
 class AbstimeMessage:
     def __init__(self, t, m):
@@ -98,7 +97,9 @@ def make_template_measure(params, ppq=480):
     return percussion
 
 if __name__ == "__main__":
+    from plotMeasure import plot_midi, plot_midi_events
     m = make_template_measure(settings)
-    f = mido.MidiFile()
-    f.tracks.append(m)
-    plot_midi(f)
+    plot_midi(m)
+    
+    
+
