@@ -29,7 +29,8 @@ def plot_midi_events(events):
                         if not end:
                             end = start + 480/8
                         plt.barh(y, width=end-start, left=start, color=colors[ch_idx])
-            y += 1
+            if x_range or (channel != 9):
+                y += 1
     plt.yticks(y_values, y_labels)
     # Set x-axis label
     plt.xlabel('Time')
@@ -48,7 +49,6 @@ def plot_midi(f):
     else:
         raise TypeError
     eventq = EventQue(m)
-    print(eventq)
     plot_midi_events(eventq)
 
 if __name__ == '__main__':
