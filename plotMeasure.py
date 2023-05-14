@@ -28,6 +28,8 @@ def plot_midi_events(events):
                     for range_element in x_range:
                         start = range_element[0]
                         end = range_element[1]
+                        if not end:
+                            end = start + 480/8
                         plt.barh(y, width=end-start, left=start, color=colors[ch_idx])
             y += 1
     plt.yticks(y_values, y_labels)
@@ -42,12 +44,14 @@ def plot_midi(f):
         m = mido.MidiFile(f)
     elif isinstance(f, mido.MidiFile):
         m = f
+    elif isinstance(f, mido.MidiTrack):
+        m = mido.MidiFile()
+        m.tracks.append(f)
     else:
         raise TypeError
-
-    events, duration = parse_midi_file(m)
-    print_events(events)
-    plot_midi_events(events, duration)
+    eventq = EventQue(m)
+    print(eventq)
+    plot_midi_events(eventq)
 
 if __name__ == '__main__':
     mf = mido.MidiFile('demo/redeemed.mid')
