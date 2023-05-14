@@ -13,7 +13,7 @@ class Settings:
             "measure"         : { "note": 77, "volume": 127 },
             "measure_options" : [2,3,4,5,6,7,9,12],
             "beat"            : { "note": 76, "volume": 63 },
-            "eighths"         : { "note":51, "volume": 0},
+            "eighths"         : { "note":51, "volume": 120},
             "swing"           : 0.0,
             "sixteenths"      : { "note":42, "volume":0}
         }
