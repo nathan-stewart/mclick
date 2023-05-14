@@ -5,10 +5,11 @@ import time
 import math
 import mido
 import sys
+import random
 import os
 from settings import settings
 from buildMeasure import make_template_measure
-
+from events import EventQue
 from plotMeasure import plot_midi
 
 class Ticker(threading.Thread):
@@ -48,36 +49,79 @@ class Ticker(threading.Thread):
             self.midi_out = mido.open_output(port)
             self.midi_out.send(mido.Message('start'))
 
+    def handle_anacrusis(self, measures):
+        if not isinstance(measures, list):
+            raise TypeError
+
+        if not measures:
+            return []
+
+        if len(measures) < 2:
+            return measures.copy()
+        
+        # look for ordinary anacrusis - first and last measure form whole measure 
+        # This meter must be the same as the 2nd measure
+        first = measures[0]
+        second = measures[1]
+        last = measures[-1]
+
+        modified = []
+        if (first[1] == second[1] == last[1] and first[0] + last[0]) == second[0]:
+            modified.append(measures[1]) # Add an extra count in measure
+        else:
+            modified.append(first)
+        # Now if anacrusis is present, the final measure will be short but the initial 
+        # measure will be whole. Play repeats using the first measure, finish using the last
+
+        # look for internal anacrusis - typically a verse/chorus split mid measure
+        # internal anacrusis by definition can't be at the endpoints, and requires 
+        # at least one one full measure on either side - so it has a minimum of 
+        # six measures - first, full, short_a, short_b, full, last}
+        if len(measures) < 6:
+            modified += measures[1:] 
+            return modified
+
+        for i,m in enumerate(measures[1:-2], start=1):
+            previous  = measures[i-1]
+            following = measures[i+1]
+
+            if m[1] != following[1]: # don't merge if denominator changes
+                modified.append(m)
+                continue 
+            if m[0] + following[0] == previous[0]:
+                # first submeasure
+                modified.append(previous)
+            elif m[0] + previous[0] == following[0]:
+                # second submeasure - skip it
+                continue
+            else:
+                modified.append(m)
+
+        modified.append(measures[-1])
+        return modified
+
     def make_rhythm_from_song(self):
         self.rhythmq.clear()
         self.rhythm_track.clear()
         self.rhythm_track = self.song.add_track('MClick')
-
-        ticks_per_beat = self.song.ticks_per_beat
-        num_beats = 4
-        measure_count = 0
+        ticks_per_beat = self.song.ticks_per_beat # actually ppq
         if self.song.tracks:
-            songtrack = self.song.tracks[0]
-            measure_elapsed = 0
-            ticks_per_measure = num_beats * ticks_per_beat
-            for sm in songtrack:
-                if sm.is_meta:
-                    if sm.type == 'time_signature':
-                        measure_elapsed = 0
-                        new_meas = settings
-                        new_meas['num_beats'] = num_beats
-                        self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
-                else:
-                    measure_elapsed += sm.time
-                    if measure_elapsed >= ticks_per_measure:
-                        measure_elapsed = 0
-                        new_meas = settings
-                        new_meas['num_beats'] = num_beats
-                        self.rhythmq.append(make_template_measure(new_meas,ppq = ticks_per_beat))
+            events = EventQue(self.song)
+            params = self.settings 
+            modified = self.handle_anacrusis(events.measures)
+            print(modified)
+            previous = None
+            for m in modified:
+                if m != previous:
+                    previous = m
+                    params['num_beats'] = m[0]
+                self.rhythmq.append(make_template_measure(params,ppq = ticks_per_beat))
+                print(m)
         else:
             self.rhythmq.append(make_template_measure(self.settings))
-
+        print('rhythmq = ', self.rhythmq)
         for meas in self.rhythmq:
+            print(meas)
             mcopy = meas.copy()
             while mcopy:
                 m = mcopy.pop(0)
@@ -102,7 +146,8 @@ class Ticker(threading.Thread):
             for msg in self.song.play():
                 if self.stopping.is_set():
                     break # break only goes out one loop
-                self.midi_out.send(msg)
+                if (not hasattr(msg, 'channel') or msg.channel == 9):
+                    self.midi_out.send(msg)
 
             self.play_index += 1
             if self.play_index >= len(self.playlist):
@@ -121,6 +166,7 @@ class Ticker(threading.Thread):
                     self.playlist.append(entry)
         if len(self.playlist) > 0:
             self.play_index = 0
+        self.play_index = random.randint(0,len(self.playlist))
 
 if __name__ == '__main__':
     t = Ticker(settings)
