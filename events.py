@@ -43,6 +43,9 @@ class EventQue:
         num_beats = 4
         beat_nom = 4
         measure_elapsed = 0
+
+        # Diademata.mid broke this: track0 has only info and an EOT, it has no note data
+        first_note_data = True
         for i, track in enumerate(midi.tracks):
             position = 0
             ticks_per_measure = self.ticks_per_beat(beat_nom) * num_beats
@@ -59,20 +62,34 @@ class EventQue:
                             self.silence(ringing, position)
 
                 if msg.type == 'time_signature':
-                    if i == 0 and measure_elapsed > 0:
-                        self.measures.append((num_beats,beat_nom))
+                    if measure_elapsed > 0:
                         measure_elapsed = 0
+                        if first_note_data:
+                            self.measures.append((num_beats,beat_nom))
                     num_beats = msg.numerator
                     beat_nom = msg.denominator
                     ticks_per_measure = num_beats * self.ticks_per_beat(beat_nom)
 
-                if i == 0 and measure_elapsed >= ticks_per_measure:
+                if measure_elapsed >= ticks_per_measure:
                     measure_elapsed -= ticks_per_measure
-                    self.measures.append((num_beats, beat_nom))
+                    if first_note_data:
+                        self.measures.append((num_beats, beat_nom))
 
-            if i == 0 and measure_elapsed > 0:
+            if first_note_data and measure_elapsed > 0:
                 self.measures.append((math.ceil(measure_elapsed / self.ticks_per_beat(beat_nom)),beat_nom))
+            if self.measures:
+                first_note_data = False
+
         self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(beat_nom))
+        if self.events and not self.measures:
+            print(midi.filename)
+            print('ticks_per_measure = %d' % ticks_per_measure)
+            print('ticks_per_beat = %d' % self.ticks_per_beat(beat_nom))
+            print('num_beats = %d'% num_beats)
+            print('beat_nom = %d'% beat_nom)
+            print('measure_elapsed = %d'% measure_elapsed)
+            print(position)
+            raise RuntimeError
 
     def channels(self):
         return self.events
