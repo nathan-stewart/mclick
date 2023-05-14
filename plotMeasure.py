@@ -21,9 +21,7 @@ def plot_midi_events(events):
                 y_values.append(y)
                 y_labels.append('Ch %d:% 3d' % (channel, nn))
                 x_range = events.events[channel][nn]
-                if nn == 60:
-                    # doesn't plot across multiple measures
-                    print(x_range)
+                
                 if isinstance(x_range, list):
                     for range_element in x_range:
                         start = range_element[0]
