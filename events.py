@@ -2,6 +2,7 @@
 import mido
 from sortedcontainers import SortedList
 from collections import defaultdict
+import math
 
 # Takes a list of note on/off events for a single channel/note number
 # Returns the oldest one without a stop event [start,stop]
@@ -14,6 +15,10 @@ def newest_ringing(notes):
 # This class builds a time ordered representation of midi events
 # It's essentially a different view of a Midi file
 class EventQue:
+    def ticks_per_beat(self, nominal):
+        # ppq is fixed - obtained early in __init__()
+        return int(self.ppq * 4 / nominal)
+
     def silence(self, event, now):
         if event:
             start = event[0]
@@ -30,9 +35,9 @@ class EventQue:
         """
         if not midi:
             midi = mido.MidiFile()
+        self.ppq = midi.ticks_per_beat
 
         self.events = defaultdict(lambda: defaultdict(list))
-        ticks_per_beat = midi.ticks_per_beat
         self.duration = 0
         self.measures = []
         num_beats = 4
@@ -40,7 +45,7 @@ class EventQue:
         measure_elapsed = 0
         for i, track in enumerate(midi.tracks):
             position = 0
-            ticks_per_measure = ticks_per_beat * num_beats
+            ticks_per_measure = self.ticks_per_beat(beat_nom) * num_beats
             for msg in track:
                 if hasattr(msg, 'time'):
                     position += msg.time
@@ -54,20 +59,20 @@ class EventQue:
                             self.silence(ringing, position)
 
                 if msg.type == 'time_signature':
+                    if i == 0 and measure_elapsed > 0:
+                        self.measures.append((num_beats,beat_nom))
+                        measure_elapsed = 0
                     num_beats = msg.numerator
                     beat_nom = msg.denominator
-                    if i == 0 and measure_elapsed > 0:
-                        self.measures.append(measure_elapsed)
-                    measure_elapsed = 0
-                    ticks_per_measure = ticks_per_beat * num_beats * 4 / beat_nom
+                    ticks_per_measure = num_beats * self.ticks_per_beat(beat_nom)
 
                 if i == 0 and measure_elapsed >= ticks_per_measure:
                     measure_elapsed -= ticks_per_measure
-                    self.measures.append(ticks_per_measure)
+                    self.measures.append((num_beats, beat_nom))
 
             if i == 0 and measure_elapsed > 0:
-                self.measures.append(measure_elapsed)
-        self.duration = sum(self.measures)
+                self.measures.append((math.ceil(measure_elapsed / self.ticks_per_beat(beat_nom)),beat_nom))
+        self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(beat_nom))
 
     def channels(self):
         return self.events
