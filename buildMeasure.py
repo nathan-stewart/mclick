@@ -44,7 +44,6 @@ def make_template_measure(params, ppq=480):
         skip = params['beat']['skip']
     swing = min(1.0, max(0.0, params['swing'] / 100.0))
     compound = True if beat_count in [6,9,12] else False
-    #print('Time Signature = %d %s %s %s' % (beat_count, 'swing' if swing > 0 else 'straight',  'compound' if compound else 'simple', 'skip' if skip else ''))
 
     # don't play the one - it's played by the measure
     beats = [int(b * ppq)  for b in range(1,beat_count) ]
