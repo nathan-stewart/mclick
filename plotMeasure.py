@@ -15,7 +15,7 @@ def plot_midi_events(events):
     y_labels = []
     channels = sorted(ranges.keys())
     for ch_idx,channel in enumerate(channels):
-        for nn_idx in range(ranges[channel][1] - ranges[channel][0]):
+        for nn_idx in range(ranges[channel][1] - ranges[channel][0] + 1):
             nn = ranges[channel][0] + nn_idx
             if nn in events.events[channel].keys():
                 y_values.append(y)
@@ -29,7 +29,7 @@ def plot_midi_events(events):
                         if not end:
                             end = start + 480/8
                         plt.barh(y, width=end-start, left=start, color=colors[ch_idx])
-            if x_range or (channel != 9):
+            if x_range:
                 y += 1
     plt.yticks(y_values, y_labels)
     # Set x-axis label
@@ -52,7 +52,7 @@ def plot_midi(f):
     plot_midi_events(eventq)
 
 if __name__ == '__main__':
-    mf = mido.MidiFile('demo/redeemed.mid')
+    mf = mido.MidiFile('demo/redeemed-melody.mid')
     eventq = EventQue(mf)
     plot_midi_events(eventq)
 
