@@ -82,7 +82,7 @@ class EventQue:
 
         self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(beat_nom))
         if self.events and not self.measures:
-            print(midi.filename)
+            #print(midi.filename)
             print('ticks_per_measure = %d' % ticks_per_measure)
             print('ticks_per_beat = %d' % self.ticks_per_beat(beat_nom))
             print('num_beats = %d'% num_beats)
