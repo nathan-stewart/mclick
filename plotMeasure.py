@@ -29,8 +29,8 @@ def plot_midi_events(events):
                         if not end:
                             end = start + 480/8
                         plt.barh(y, width=end-start, left=start, color=colors[ch_idx])
-            if x_range:
-                y += 1
+                if x_range:
+                    y += 1
     plt.yticks(y_values, y_labels)
     # Set x-axis label
     plt.xlabel('Time')
