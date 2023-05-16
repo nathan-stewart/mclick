@@ -109,19 +109,17 @@ class Ticker(threading.Thread):
             events = EventQue(self.song)
             params = self.settings 
             modified = self.handle_anacrusis(events.measures)
-            print(modified)
+            #print(modified)
             previous = None
             for m in modified:
                 if m != previous:
                     previous = m
                     params['num_beats'] = m[0]
                 self.rhythmq.append(make_template_measure(params,ppq = ticks_per_beat))
-                print(m)
         else:
             self.rhythmq.append(make_template_measure(self.settings))
-        print('rhythmq = ', self.rhythmq)
+        #print('rhythmq = ', self.rhythmq)
         for meas in self.rhythmq:
-            print(meas)
             mcopy = meas.copy()
             while mcopy:
                 m = mcopy.pop(0)
@@ -146,8 +144,7 @@ class Ticker(threading.Thread):
             for msg in self.song.play():
                 if self.stopping.is_set():
                     break # break only goes out one loop
-                if (not hasattr(msg, 'channel') or msg.channel == 9):
-                    self.midi_out.send(msg)
+                self.midi_out.send(msg)
 
             self.play_index += 1
             if self.play_index >= len(self.playlist):
@@ -159,18 +156,21 @@ class Ticker(threading.Thread):
     def open_files(self, path):
         self.playlist.clear()
         self.play_index = None
+        if os.path.isdir(path):
+            with os.scandir(path) as it:
+                for entry in it:
+                    if entry.is_file() and  entry.name.endswith('.mid'):
+                        self.playlist.append(entry)
+        elif os.path.isfile(path):
+            self.playlist = [path]
 
-        with os.scandir(path) as it:
-            for entry in it:
-                if entry.is_file() and  entry.name.endswith('.mid'):
-                    self.playlist.append(entry)
         if len(self.playlist) > 0:
             self.play_index = 0
         self.play_index = random.randint(0,len(self.playlist))
 
 if __name__ == '__main__':
     t = Ticker(settings)
-    #t.load_song('/home/nps/projects/hymns/cwm_rhondda.mid')
+    #t.open_files('/home/nps/projects/hymns/cwm_rhondda.mid')
     t.open_files('demo')
     try:
         t.run()
