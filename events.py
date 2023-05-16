@@ -40,15 +40,13 @@ class EventQue:
         self.events = defaultdict(lambda: defaultdict(list))
         self.duration = 0
         self.measures = []
-        num_beats = 4
-        beat_nom = 4
+        ts = (4,4)
         measure_elapsed = 0
 
-        # Diademata.mid broke this: track0 has only info and an EOT, it has no note data
         first_note_data = True
         for i, track in enumerate(midi.tracks):
             position = 0
-            ticks_per_measure = self.ticks_per_beat(beat_nom) * num_beats
+            ticks_per_measure = self.ticks_per_beat(ts[1]) * ts[0] 
             for msg in track:
                 if hasattr(msg, 'time'):
                     position += msg.time
@@ -65,28 +63,27 @@ class EventQue:
                     if measure_elapsed > 0:
                         measure_elapsed = 0
                         if first_note_data:
-                            self.measures.append((num_beats,beat_nom))
-                    num_beats = msg.numerator
-                    beat_nom = msg.denominator
-                    ticks_per_measure = num_beats * self.ticks_per_beat(beat_nom)
+                            self.measures.append(time_sig)
+                    time_sig = (msg.numerator, msg.denominator)
+                    ticks_per_measure = time_sig[0] * self.ticks_per_beat(time_sig[1])
 
                 if measure_elapsed >= ticks_per_measure:
                     measure_elapsed -= ticks_per_measure
                     if first_note_data:
-                        self.measures.append((num_beats, beat_nom))
+                        self.measures.append(ts)
 
             if first_note_data and measure_elapsed > 0:
-                self.measures.append((math.ceil(measure_elapsed / self.ticks_per_beat(beat_nom)),beat_nom))
+                self.measures.append(
+                        (math.ceil(measure_elapsed / self.ticks_per_beat(ts[1])), ts[1]))
             if self.measures:
                 first_note_data = False
 
-        self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(beat_nom))
+        self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(ts[1]))
         if self.events and not self.measures:
             #print(midi.filename)
             print('ticks_per_measure = %d' % ticks_per_measure)
-            print('ticks_per_beat = %d' % self.ticks_per_beat(beat_nom))
-            print('num_beats = %d'% num_beats)
-            print('beat_nom = %d'% beat_nom)
+            print('ticks_per_beat = %d' % self.ticks_per_beat(time_sig[1]))
+            print('time_signature = %d'% time_sig)
             print('measure_elapsed = %d'% measure_elapsed)
             print(position)
             raise RuntimeError
