@@ -9,10 +9,10 @@ class Settings:
             "midi_port"       : "UMC1820:UMC1820 MIDI 1",
             "midi_ports"      : mido.get_output_names(),
             "tempo"           : 60,
-            "num_beats"       : 4,
+            "time_signature"  : (4,4),
+            "measure_options" : [(2,2), (3,4), (4,4), (6,8), (9,8), (12,8)],
             "measure"         : { "note": 77, "volume": 127 },
-            "measure_options" : [2,3,4,5,6,7,9,12],
-            "beat"            : { "note": 76, "volume": 63 },
+            "beat"            : { "note": 76, "volume": 63, 'skip':False },
             "eighths"         : { "note":51, "volume": 120},
             "swing"           : 0.0,
             "sixteenths"      : { "note":42, "volume":0}
@@ -29,7 +29,7 @@ class Settings:
                     (self.data['midi_backend'] == params.data['midi_backend']))
 
     def time_signature_changed(self, params):
-        return self.data['num_beats'] != params.data['num_beats']
+        return self.data['time_signature'] != params.data['time_signature']
 
     def tempo_changed(self, params):
         return self.data['tempo'] != params.data['tempo']
