@@ -27,9 +27,9 @@ def plot_midi_events(events):
                         start = range_element[0]
                         end = range_element[1]
                         if not end:
-                            end = start + 3
-                        plt.hlines(y, xmin=start, xmax=end, color=colors[ch_idx])
-                        plt.scatter([start, end], [y,y], marker='|', color=colors[ch_idx])
+                            plt.scatter(start, y, marker='D', color=colors[ch_idx])
+                        else:
+                            plt.barh(y, end - start, left=start, height=0.1, color=colors[ch_idx])
                 if x_range:
                     y += 1
     plt.yticks(y_values, y_labels)
