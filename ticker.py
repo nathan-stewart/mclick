@@ -26,6 +26,7 @@ class Ticker(threading.Thread):
         self.rhythm_track = mido.MidiTrack()
         self.rhythm_track.name = 'MClick'
         self.song = mido.MidiFile()
+        self.shuffle = False
         self.update(params)
 
     def stop(self):
@@ -66,9 +67,14 @@ class Ticker(threading.Thread):
         last = measures[-1]
 
         modified = []
-        if (first[1] == second[1] == last[1] and first[0] + last[0]) == second[0]:
-            modified.append(measures[1]) # Add an extra count in measure
+        if (first[1] == second[1] == last[1] and 
+            first[0] != second[0] and 
+            first[0] + last[0]) == second[0]:
+            print('anacrusis detected')
+            print(first, second, last)
+            modified.append(measures[1]) # Add an extra count in measure in place of the short one
         else:
+            print('no anacrusis detected')
             modified.append(first)
         # Now if anacrusis is present, the final measure will be short but the initial 
         # measure will be whole. Play repeats using the first measure, finish using the last
@@ -101,30 +107,16 @@ class Ticker(threading.Thread):
         return modified
 
     def make_rhythm_from_song(self):
-        self.rhythmq.clear()
-        self.rhythm_track.clear()
-        self.rhythm_track = self.song.add_track('MClick')
-        ticks_per_beat = self.song.ticks_per_beat # actually ppq
+        if self.rhythm in self.songs.tracks:
+            self.songs.tracks.remove(self.rhythm)
+
         if self.song.tracks:
             events = EventQue(self.song)
-            params = self.settings 
-            modified = self.handle_anacrusis(events.measures)
-            #print(modified)
-            previous = None
-            for m in modified:
-                if m != previous:
-                    previous = m
-                    params['num_beats'] = m[0]
-                self.rhythmq.append(make_template_measure(params,ppq = ticks_per_beat))
+            measures = self.handle_anacrusis(events.measures)
+            self.rhythm = self.song.tracks.add_track(make_template_measure(self.settings, measures)
         else:
-            self.rhythmq.append(make_template_measure(self.settings))
-        #print('rhythmq = ', self.rhythmq)
-        for meas in self.rhythmq:
-            mcopy = meas.copy()
-            while mcopy:
-                m = mcopy.pop(0)
-                self.rhythm_track.append(m)
-
+            self.rhythm = self.song.tracks.add_track(make_template_measure(self.settings))
+        
     def update(self, params):
         if params:
             self.settings = params
@@ -133,25 +125,34 @@ class Ticker(threading.Thread):
 
     def run(self):
         self.midi_setup()
-        self.play_index = 0
+        self.play_index = -1
         while not self.stopping.is_set():
             if self.playlist:
+                if self.shuffle:
+                    self.play_index = random.randint(0,len(self.playlist)) - 1
+                else:
+                    self.play_index += 1
+                    if self.play_index >=  len(self.playlist):
+                        self.play_index = -1
+                print(self.play_index)
                 self.song = mido.MidiFile(self.playlist[self.play_index])
+                print(self.song.filename)
             else:
                 self.song = mido.MidiFile()
             self.make_rhythm_from_song()
             plot_midi(self.song)
             for msg in self.song.play():
+                break
                 if self.stopping.is_set():
                     break # break only goes out one loop
                 self.midi_out.send(msg)
 
-            self.play_index += 1
-            if self.play_index >= len(self.playlist):
-                self.play_index = 0
-
             if self.stopping.is_set():
                 break
+
+            if self.play_index >= len(self.playlist):
+                self.play_index = -1
+
 
     def open_files(self, path):
         self.playlist.clear()
@@ -164,14 +165,15 @@ class Ticker(threading.Thread):
         elif os.path.isfile(path):
             self.playlist = [path]
 
-        if len(self.playlist) > 0:
-            self.play_index = 0
-        self.play_index = random.randint(0,len(self.playlist))
 
 if __name__ == '__main__':
     t = Ticker(settings)
-    #t.open_files('/home/nps/projects/hymns/cwm_rhondda.mid')
-    t.open_files('demo')
+    t.open_files('demo/cwm_rhondda.mid')
+    # still breaks on Regent Square
+
+    # tell me the story of jesus parses as one measure of 4/4 and one measure of 96/4
+    # the midi file looks ok in musescore
+    #t.open_files('demo')
     try:
         t.run()
     except KeyboardInterrupt:
