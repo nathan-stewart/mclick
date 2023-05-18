@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 from events import EventQue
 
-def plot_midi_events(events):
+def plot_midi_events(events,title=None):
     # Prepare data for plotting
     ranges = events.channel_note_ranges()
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray']
@@ -34,12 +34,14 @@ def plot_midi_events(events):
                     y += 1
     plt.yticks(y_values, y_labels)
     # Set x-axis label
+    if title:
+        plt.title(title)
     plt.xlabel('Time')
     plt.xlim([0,events.duration])
     plt.tight_layout()
     plt.show()
 
-def plot_midi(f):
+def plot_midi(f, title=None):
     m = None
     if isinstance(f, str):
         m = mido.MidiFile(f)
@@ -51,7 +53,7 @@ def plot_midi(f):
     else:
         raise TypeError
     eventq = EventQue(m)
-    plot_midi_events(eventq)
+    plot_midi_events(eventq, title)
 
 if __name__ == '__main__':
     mf = mido.MidiFile('demo/redeemed-melody.mid')
