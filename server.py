@@ -11,13 +11,14 @@ TODO:
 from flask import Flask, render_template, request, abort
 from flask_socketio import SocketIO, send, emit
 import mido, logging, json
-from settings import settings
+from settings import Settings
 from ticker import Ticker
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-ticker = Ticker(settings)
+defaults = Settings()
+ticker = Ticker(defaults)
 ticker.start()
 
 @app.before_first_request
@@ -31,21 +32,21 @@ def handle_render_error(data):
 
 @app.route('/mclick')
 def index():
-    return render_template('index.html', parameters=json.dumps(settings))
+    params = Settings()
+    return render_template('index.html', parameters=params.to_json())
 
 @socketio.on('update_from_gui')
 def on_update(parameters):
-    global settings
     global ticker
-    settings = parameters
-    ticker.update(settings)
+    print(parameters)
+    ticker.update(paramaters)
     # TBD - save settings
 
 @socketio.on('connect')
 def on_connect():
-    global settings
     global ticker
-    ticker.update(settings)
+    defaults = Settings()
+    ticker.update(defaults)
 
 @socketio.on('disconnect')
 def on_disconnect():

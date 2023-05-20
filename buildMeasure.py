@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import mido
 from sortedcontainers import SortedList
-from settings import settings
+from settings import Settings
 from events import EventQue 
 
 def track_length(track):
@@ -171,25 +171,26 @@ def make_rhythm_track(song, params):
 
 if __name__ == "__main__":
     from plotMeasure import plot_midi, plot_midi_events
-    for ts in settings['measure_options']:
-        settings['time_signature'] = ts
-        settings['measure']['note'] = 10
-        settings['measure']['volume'] = 127
-        settings['beat']['note'] = 11
-        settings['beat']['volume'] = 63
-        settings['eighths']['note'] = 12
-        settings['eighths']['volume'] = 31
-        settings['sixteenths']['note']= 13
-        settings['sixteenths']['volume']= 0
-        settings['swing'] = 0
+    params = Settings()
+    for ts in params['measure_options']:
+        params['time_signature'] = ts
+        params['measure']['note'] = 10
+        params['measure']['volume'] = 127
+        params['beat']['note'] = 11
+        params['beat']['volume'] = 63
+        params['eighths']['note'] = 12
+        params['eighths']['volume'] = 31
+        params['sixteenths']['note']= 13
+        params['sixteenths']['volume']= 0
+        params['swing'] = 0
 
         m = mido.MidiFile()
 
-        m.tracks.append(make_rhythm_track(m, settings))
+        m.tracks.append(make_rhythm_track(m, params))
         plot_midi(m, title=ts)
 
     m = mido.MidiFile('demo/cwm_rhondda.mid')
-    m.tracks.append( make_rhythm_track(m, settings))
+    m.tracks.append( make_rhythm_track(m, params))
     plot_midi(m, title=m.filename)
     
     

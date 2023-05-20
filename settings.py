@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass, field
 import mido
+import json
 
 class Settings:
     def __init__(self):
@@ -41,4 +42,9 @@ class Settings:
         return not (self.time_signature_changed(params) or
                     self.swing_changed(params))
 
-settings = Settings()
+    def to_json(self):
+        return json.dumps(self.data, sort_keys=True)
+
+if __name__ == '__main__':
+    settings = Settings()
+    print(settings.to_json())

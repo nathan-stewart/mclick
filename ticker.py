@@ -7,7 +7,7 @@ import mido
 import sys
 import random
 import os
-from settings import settings
+from settings import Settings
 from buildMeasure import make_rhythm_track
 from events import EventQue
 from plotMeasure import plot_midi
@@ -56,7 +56,7 @@ class Ticker(threading.Thread):
         if self.rhythm_track in self.song.tracks:
             self.song.tracks.remove(self.rhythm_track)
 
-        self.rhythm = self.song.tracks.append(make_rhythm_track(self.song, settings))
+        self.rhythm = self.song.tracks.append(make_rhythm_track(self.song, self.settings))
         
     def update(self, params):
         if params:
@@ -106,7 +106,7 @@ class Ticker(threading.Thread):
 
 
 if __name__ == '__main__':
-    t = Ticker(settings)
+    t = Ticker(Settings())
     # still breaks on Regent Square
     # redeemed speeds up on final measure
 
