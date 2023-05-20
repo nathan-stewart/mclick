@@ -72,7 +72,6 @@ def make_template_measures(params, measures, ppq=480):
     parts = [mido.MidiTrack() for t in range(4)]
     part_idx = { 'measure' : 0, 'beat': 1, 'eighths':2, 'sixteenths':3 }
     
-    print('make_template_measures on ', measures)
     # extends the scope for final measure
     ts = None
     ticks_per_beat = None
