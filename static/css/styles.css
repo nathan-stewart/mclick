@@ -94,3 +94,11 @@
 .disconnected {
     display: none;
 }
+
+img {
+  -webkit-user-drag: none;  /* Safari/Chrome */
+  -moz-user-drag: none;     /* Firefox */
+  -ms-user-drag: none;      /* Internet Explorer/Edge */
+  user-drag: none;          /* Generic */
+}
+
