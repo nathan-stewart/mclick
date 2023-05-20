@@ -8,9 +8,11 @@ import sys
 import random
 import os
 from settings import settings
-from buildMeasure import make_template_measure
+from buildMeasure import make_rhythm_track
 from events import EventQue
 from plotMeasure import plot_midi
+
+''' TBD - move midi clock out of midi file into its own thread'''
 
 class Ticker(threading.Thread):
     def __init__(self, params = None):
@@ -50,72 +52,11 @@ class Ticker(threading.Thread):
             self.midi_out = mido.open_output(port)
             self.midi_out.send(mido.Message('start'))
 
-    def handle_anacrusis(self, measures):
-        if not isinstance(measures, list):
-            raise TypeError
-
-        if not measures:
-            return []
-
-        if len(measures) < 2:
-            return measures.copy()
-        
-        # look for ordinary anacrusis - first and last measure form whole measure 
-        # This meter must be the same as the 2nd measure
-        first = measures[0]
-        second = measures[1]
-        last = measures[-1]
-
-        modified = []
-        if (first[1] == second[1] == last[1] and 
-            first[0] != second[0] and 
-            first[0] + last[0]) == second[0]:
-            print('anacrusis detected')
-            print(first, second, last)
-            modified.append(measures[1]) # Add an extra count in measure in place of the short one
-        else:
-            print('no anacrusis detected')
-            modified.append(first)
-        # Now if anacrusis is present, the final measure will be short but the initial 
-        # measure will be whole. Play repeats using the first measure, finish using the last
-
-        # look for internal anacrusis - typically a verse/chorus split mid measure
-        # internal anacrusis by definition can't be at the endpoints, and requires 
-        # at least one one full measure on either side - so it has a minimum of 
-        # six measures - first, full, short_a, short_b, full, last}
-        if len(measures) < 6:
-            modified += measures[1:] 
-            return modified
-
-        for i,m in enumerate(measures[1:-2], start=1):
-            previous  = measures[i-1]
-            following = measures[i+1]
-
-            if m[1] != following[1]: # don't merge if denominator changes
-                modified.append(m)
-                continue 
-            if m[0] + following[0] == previous[0]:
-                # first submeasure
-                modified.append(previous)
-            elif m[0] + previous[0] == following[0]:
-                # second submeasure - skip it
-                continue
-            else:
-                modified.append(m)
-
-        modified.append(measures[-1])
-        return modified
-
     def make_rhythm_from_song(self):
-        if self.rhythm in self.songs.tracks:
-            self.songs.tracks.remove(self.rhythm)
+        if self.rhythm_track in self.song.tracks:
+            self.song.tracks.remove(self.rhythm_track)
 
-        if self.song.tracks:
-            events = EventQue(self.song)
-            measures = self.handle_anacrusis(events.measures)
-            self.rhythm = self.song.tracks.add_track(make_template_measure(self.settings, measures)
-        else:
-            self.rhythm = self.song.tracks.add_track(make_template_measure(self.settings))
+        self.rhythm = self.song.tracks.append(make_rhythm_track(self.song, settings))
         
     def update(self, params):
         if params:
@@ -134,7 +75,6 @@ class Ticker(threading.Thread):
                     self.play_index += 1
                     if self.play_index >=  len(self.playlist):
                         self.play_index = -1
-                print(self.play_index)
                 self.song = mido.MidiFile(self.playlist[self.play_index])
                 print(self.song.filename)
             else:
@@ -142,7 +82,6 @@ class Ticker(threading.Thread):
             self.make_rhythm_from_song()
             plot_midi(self.song)
             for msg in self.song.play():
-                break
                 if self.stopping.is_set():
                     break # break only goes out one loop
                 self.midi_out.send(msg)
@@ -168,12 +107,12 @@ class Ticker(threading.Thread):
 
 if __name__ == '__main__':
     t = Ticker(settings)
-    t.open_files('demo/cwm_rhondda.mid')
     # still breaks on Regent Square
+    # redeemed speeds up on final measure
 
     # tell me the story of jesus parses as one measure of 4/4 and one measure of 96/4
     # the midi file looks ok in musescore
-    #t.open_files('demo')
+    t.open_files('demo')
     try:
         t.run()
     except KeyboardInterrupt:
