@@ -80,7 +80,7 @@ class Ticker(threading.Thread):
             else:
                 self.song = mido.MidiFile()
             self.make_rhythm_from_song()
-            plot_midi(self.song)
+            #plot_midi(self.song)
             for msg in self.song.play():
                 if self.stopping.is_set():
                     break # break only goes out one loop
