@@ -18,7 +18,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 defaults = Settings()
-ticker = Ticker(defaults)
+ticker = Ticker()
 ticker.start()
 
 @app.before_first_request

@@ -29,7 +29,8 @@ class Ticker(threading.Thread):
         self.rhythm_track.name = 'MClick'
         self.song = mido.MidiFile()
         self.shuffle = False
-        self.update(params)
+        if params:
+            self.update(params)
 
     def stop(self):
         self.stopping.set()
@@ -43,31 +44,39 @@ class Ticker(threading.Thread):
             self.midi_out = None
 
     def midi_setup(self):
-        mido.set_backend(self.settings['midi_backend'])
-        if self.midi_out:
-            self.midi_teardown()
+        if self.settings:
+            mido.set_backend(self.settings['midi_backend'])
+            if self.midi_out:
+                self.midi_teardown()
 
-        port = self.settings['midi_port']
-        if port and any (port in listed for listed in mido.get_output_names()):
-            self.midi_out = mido.open_output(port)
-            self.midi_out.send(mido.Message('start'))
+            port = self.settings['midi_port']
+            if port and any (port in listed for listed in mido.get_output_names()):
+                self.midi_out = mido.open_output(port)
+                self.midi_out.send(mido.Message('start'))
 
     def make_rhythm_from_song(self):
+        if not self.settings:
+            raise RuntimeError('No settings')
+
         if self.rhythm_track in self.song.tracks:
             self.song.tracks.remove(self.rhythm_track)
 
         self.rhythm = self.song.tracks.append(make_rhythm_track(self.song, self.settings))
         
     def update(self, params):
+        self.settings = params
         if params:
-            self.settings = params
+            self.midi_setup()
         else:
-            self.settings = Settings()
+            self.midi_teardown()
 
     def run(self):
-        self.midi_setup()
         self.play_index = -1
         while not self.stopping.is_set():
+            if not self.settings:
+                time.sleep(0.5)
+                continue
+
             if self.playlist:
                 if self.shuffle:
                     self.play_index = random.randint(0,len(self.playlist)) - 1
@@ -79,10 +88,12 @@ class Ticker(threading.Thread):
                 print(self.song.filename)
             else:
                 self.song = mido.MidiFile()
+
             self.make_rhythm_from_song()
             #plot_midi(self.song)
+            print(self.settings)
             for msg in self.song.play():
-                if self.stopping.is_set():
+                if self.stopping.is_set() or not self.settings:
                     break # break only goes out one loop
                 self.midi_out.send(msg)
 
