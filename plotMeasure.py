@@ -32,12 +32,12 @@ def plot_midi_events(events,title=None):
                             plt.barh(y, end - start, left=start, height=0.1, color=colors[ch_idx])
                 if x_range:
                     y += 1
-    plt.yticks(y_values, y_labels)
-    # Set x-axis label
+
     if title:
         plt.title(title)
-    plt.xlabel('Time')
     plt.xlim([0,events.duration])
+    plt.yticks(y_values, y_labels)
+    plt.xlabel('Time')
     plt.tight_layout()
     plt.show()
 
