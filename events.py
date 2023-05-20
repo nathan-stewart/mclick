@@ -25,6 +25,36 @@ class EventQue:
             event.clear()
             event.extend( [start, now] )
 
+    def count_measures(self, midi):
+        self.ppq = midi.ticks_per_beat
+        self.duration = 0
+        self.measures = []
+        ts = (4,4)
+        measure_elapsed = 0
+        ticks_per_measure = ts[0] * self.ticks_per_beat(ts[1])
+        for msg in mido.merge_tracks(midi.tracks):
+            if msg.type == 'clock':
+                continue 
+
+            if hasattr(msg, 'time'):
+                measure_elapsed += msg.time
+            
+            if measure_elapsed >= ticks_per_measure:
+                measure_elapsed -= ticks_per_measure
+                self.measures.append(ts)
+
+            if msg.type == 'time_signature':
+                ts = (msg.numerator, msg.denominator)
+                ticks_per_measure = ts[0] * self.ticks_per_beat(ts[1])
+                measure_elapsed = 0
+        
+        # if time remains, add that measure
+        if measure_elapsed > 0:
+            self.measures.append(
+                    (math.ceil(measure_elapsed / self.ticks_per_beat(ts[1])), ts[1]))
+
+        self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(ts[1]))
+
     def __init__(self, midi = None):
         """
         Returns:
@@ -36,30 +66,20 @@ class EventQue:
         if not midi:
             midi = mido.MidiFile()
         self.ppq = midi.ticks_per_beat
-
         self.events = defaultdict(lambda: defaultdict(list))
-        self.duration = 0
-        self.measures = []
         ts = (4,4)
-        marked = False
+
+        self.count_measures(midi)
+
         for i, track in enumerate(midi.tracks):
             ticks_per_measure = ts[0] * self.ticks_per_beat(ts[1]) 
-            measure_elapsed = 0
             position = 0
             for msg in track:
                 if hasattr(msg, 'time'):
                     position += msg.time
-                    measure_elapsed += msg.time
-
-                    if measure_elapsed >= ticks_per_measure:
-                        measure_elapsed -= ticks_per_measure
-                        if not marked:
-                            self.measures.append(ts)
 
                     if msg.type == 'time_signature':
                         ts = (msg.numerator, msg.denominator)
-                        ticks_per_measure = ts[0] * self.ticks_per_beat(ts[1])
-                        measure_elapsed = 0
                     
                     elif msg.type == 'note_on' or msg.type == 'note_off':
                         notes = self.events[msg.channel][msg.note]
@@ -68,15 +88,7 @@ class EventQue:
                         else:
                             ringing = newest_ringing(notes)
                             self.silence(ringing, position)
-
-
-            # if time remains, add that measure
-            if not marked and measure_elapsed > 0:
-                self.measures.append(
-                        (math.ceil(measure_elapsed / self.ticks_per_beat(ts[1])), ts[1]))
-            marked = len(self.measures) > 0
-
-        self.duration = sum(m[0] for m in self.measures * self.ticks_per_beat(ts[1]))
+        
         if self.events and not self.measures:
             #print(midi.filename)
             print('ticks_per_measure = %d' % ticks_per_measure)
