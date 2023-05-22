@@ -46,7 +46,7 @@
     align-items: flex-end;
     justify-content: flex-start;
     height: 100%;
-    width: 30%;
+    width: 100px;
     margin: 10px;
 }
 
@@ -57,7 +57,7 @@
 .sliderbox{
     display: flex;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-start;
     width: 30%;
     max-width: 350px;
 }
@@ -93,6 +93,26 @@
 
 .disconnected {
     display: none;
+}
+
+@font-face {
+  font-family: 'Bravura';
+  src: url('../fonts/Bravura.otf') format('opentype');
+}
+
+.time_signature {
+  display:flex;
+  text-align: center;
+  flex-direction: column;
+}
+
+.time_signature p {
+  font-family: 'Bravura';
+  font-size: 36px;
+  line-height: 0.8;
+  margin: 0;
+  text-align: center;
+  flex: 1;
 }
 
 img {

@@ -3,6 +3,26 @@ var settings = JSON.parse(document.getElementById('settings-data').getAttribute(
 let note_selected;
 var disconnected = false;
 
+var id_ts_up;
+var id_ts_down;
+var id_icon_beat;
+var id_icon_eighth;
+var id_icon_sixteenth;
+var id_slider_tempo;
+var id_val_tempo;
+var id_vol_measure;
+var id_vol_beat;
+var id_vol_eighth;
+var id_val_swing;
+var id_vol_sixteenth;
+var id_disp_tempo;
+var id_disp_ts_num;
+var id_disp_ts_denom;
+var id_disconnect;
+var id_dlg_note_number;
+var id_note_number;
+var id_form;
+
 function auto_refresh() {
     if (disconnected){
         local.reload();
@@ -13,51 +33,52 @@ setTimeout(auto_refresh, 5000);
 
 socket.on("connect", function() { 
     console.log("connected to server");
-    document.getElementById("the_form").style.display="block";
-    document.getElementById("disconnect_warning").style.display="none";
+    id_form.style.display="block";
+    id_disconnect.style.display="none";
 });
 
 socket.on("disconnect", function() {
     console.log("disconnected from server");
-    document.getElementById("the_form").style.display="none";
-    document.getElementById("disconnect_warning").style.display="block";
+    id_form.style.display="none";
+    id_disconnect.style.display="block";
 });
 
 function set_midi_note(event) {
     console.log("clicked icon button: " + event.target.id);
-    dlg = document.getElementById("note_entry_dialog");
     
     note_selected = event.target.id;
     let value;
     switch (event.target.id) {
-        case 'icon-measure'  : 
+        case "ts_edit"  : 
             value = settings.measure.note;
+            // should this be time signature dialog? Do both note and TS from a new dialog?
             break;
-        case 'icon-beat'     :
+        case "icon-beat"     :
             value = settings.beat.note; 
             break;
-        case 'icon-eighth'   : 
+        case "icon-eighth"   : 
             value = settings.eighths.note; 
             break;
-        case 'icon-sixteenth': 
+        case "icon-sixteenth": 
             value = settings.sixteenths.note; 
             break;
         default:
-            dlg.style.display = "none";
+            console.log("unknown click - id = " + event.target.id);
+            id_dlg_note_number.style.display = "none";
             return;
     };
 
-    document.getElementById("note_number").value = value;
-    dlg.style.display = "block"
+    id_note_number.value = value;
+    id_dlg_note_number.style.display = "block"
 }
 
 function note_entry_close(){
-    dlg = document.getElementById("note_entry_dialog");
-    dlg.style.display = "none";
+    id_dlg_note_number.style.display = "none";
 
-    let value = parseInt(document.getElementById("note_number").value);
+    let value = parseInt(id_note_number.value);
     switch (note_selected) {
-        case 'icon-measure': 
+        case 'id_disp_ts_num': 
+        case 'id_disp_ts_denom': 
             settings.measure.note = value;
             break;
         case 'icon-beat':
@@ -70,7 +91,7 @@ function note_entry_close(){
             settings.sixteenths.note = value;
             break;
         default:
-            dlg.style.display = "";
+            id_dlg_note_number.style.display = "";
             return;
     };
     console.log(settings.measure);
@@ -139,18 +160,50 @@ function meter_clicked(event)
 {
     let button_id = event.target.id;
     let meters = settings.measure_options;
-    let current_meter = settings.num_beats;
+    let current_meter = settings.time_signature;
     let meter_idx = meters.indexOf(current_meter);
 
-    if (button_id == "meter_up" && (meter_idx < meters.length - 1))
+    let numerators = [2,3,4,5,6,7,8,9,10,11,12];
+    let denominators = [2,4,8];
+
+    if (button_id == "ts_up")
     {
         meter_idx += 1;
-    } else if (button_id == "meter_down" && meter_idx > 0)
+    } else if (button_id == "ts_down")
     {
         meter_idx -= 1;
     }
-    settings.num_beats = parseInt(meters[meter_idx]);
-    document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+    meter_idx = Math.max(0, Math.min(meter_idx, meters.length - 1));
+    settings.time_signature = meters[meter_idx];
+    show_meter();
+    send_updates();
+}
+
+function show_meter() {
+    const zero = 0xe080;
+    let numerator = 4;
+    let denominator = 4;
+    try {
+        [n, d]  = settings.time_signature.split('/');
+        numerator = parseInt(n);
+        denominator = parseInt(d);
+    }
+    catch {
+        console.log("error parsing time signature" + settings.time_signature);
+    }
+
+    formatted = "";
+    if (numerator > 9) {
+        tens = numerator / 10;
+        formatted += String.fromCharCode(zero + tens);
+    }
+    ones = numerator % 10;
+    formatted += String.fromCharCode(zero + ones);
+    numerator = formatted;
+
+    denominator = String.fromCharCode(zero + parseInt(denominator));
+    id_disp_ts_num.textContent = numerator;
+    id_disp_ts_denom.textContent = denominator;
 }
 
 function popup_menu(){
@@ -175,33 +228,53 @@ window.onclick = function(event) {
 
 function myLoad(event)
 {
-    document.getElementById("meter_up").addEventListener("click", meter_clicked);
-    document.getElementById("meter_down").addEventListener("click", meter_clicked);
+    // tried to make these const global but not all fields are ready when this loads
+    id_ts_up = document.getElementById("ts_up");
+    id_ts_down = document.getElementById("ts_down");
+    id_icon_beat  = document.getElementById("icon-beat");
+    id_icon_eighth = document.getElementById("icon-eighth");
+    id_icon_sixteenth = document.getElementById("icon-sixteenth");
+    id_slider_tempo  = document.getElementById("tempo_slider");
+    id_val_tempo  = document.getElementById("tempo_slider");
+    id_vol_measure  = document.getElementById("measure_volume");
+    id_vol_beat = document.getElementById("beat_volume");
+    id_vol_eighth = document.getElementById("eighth_volume");
+    id_val_swing = document.getElementById("swing_value");
+    id_vol_sixteenth = document.getElementById("sixteenth_volume");
+    id_disp_tempo = document.getElementById("tempo_output");
+    id_disp_ts_num = document.getElementById("disp_ts_num");
+    id_disp_ts_denom = document.getElementById("disp_ts_denom");
+    id_disconnect = document.getElementById("disconnect_warning");
+    id_dlg_note_number = document.getElementById("note_entry_dialog");
+    id_note_number = document.getElementById("note_number");
+    id_form = document.getElementById("the_form");
 
-    document.getElementById("icon-measure").addEventListener("click", set_midi_note);
-    document.getElementById("icon-beat").addEventListener("click", set_midi_note);
-    document.getElementById("icon-eighth").addEventListener("click", set_midi_note);
-    document.getElementById("icon-sixteenth").addEventListener("click", set_midi_note);
-    
-    document.getElementById("tempo_slider").addEventListener("input", update_tempo_drag);
+    id_ts_up.addEventListener("click", meter_clicked);
+    id_ts_down.addEventListener("click", meter_clicked);
 
-    document.getElementById("tempo_slider").addEventListener("change", on_change);
-    document.getElementById("measure_volume").addEventListener("change", on_change);
-    document.getElementById("beat_volume").addEventListener("change", on_change);
-    document.getElementById("eighth_volume").addEventListener("change", on_change);
-    document.getElementById("swing_value").addEventListener("change", on_change);
-    document.getElementById("sixteenth_volume").addEventListener("change", on_change);
-    
-    // update sliders
-    document.getElementById("tempo_slider").value = settings.tempo;
-    document.getElementById("tempo_output").value = settings.tempo;
-    document.getElementById("measure_volume").value = settings.measure.volume;
-    document.getElementById("beat_volume").value = settings.beat.volume; 
-    document.getElementById("eighth_volume").value = settings.eighths.volume;
-    document.getElementById("swing_value").value = settings.swing;
-    document.getElementById("sixteenth_volume").value = settings.sixteenths.volume;
-    document.getElementById("measure_length").src = "/static/img/" + settings.num_beats + ".svg";
+    id_icon_beat.addEventListener("click", set_midi_note);
+    id_icon_eighth.addEventListener("click", set_midi_note);
+    id_icon_sixteenth.addEventListener("click", set_midi_note);
+    id_disp_ts_num.addEventListener("click", set_midi_note);
+    id_disp_ts_denom.addEventListener("click", set_midi_note);
+    id_slider_tempo.addEventListener("input", update_tempo_drag);
 
+    id_val_tempo.addEventListener("change", on_change);
+    id_vol_measure.addEventListener("change", on_change);
+    id_vol_beat.addEventListener("change", on_change);
+    id_vol_eighth.addEventListener("change", on_change);
+    id_val_swing.addEventListener("change", on_change);
+    id_vol_sixteenth.addEventListener("change", on_change);
+
+    id_val_tempo.value = settings.tempo;
+    id_disp_tempo.value = settings.tempo;
+    id_vol_measure.value = settings.measure.volume;
+    id_vol_beat.value = settings.beat.volume; 
+    id_vol_eighth.value = settings.eighths.volume;
+    id_val_swing.value = settings.swing;
+    id_vol_sixteenth.value = settings.sixteenths.volume;
+
+    show_meter();
 
     if (window.localStorage) {
         var t0 = Number(window.localStorage["myUnloadEventFlag"]);

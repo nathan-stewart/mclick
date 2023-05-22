@@ -1,36 +1,38 @@
-.up-button, .down-button {
-  display: inline-block;
-  padding: 10px;
-  color: white;
+
+.button-box {
+    margin-left: 15px;
+}
+
+.compact-buttons-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compact-buttons {
+  display: inline-flex;
+  align-items: center;
+}
+
+.compact-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  background-color: #f1f1f1;
+  color: #555;
+  font-size: 28px;
   cursor: pointer;
-  flex-grow:0;
-  max-height: 48px;
-  max-width: 48px;
-  aspect-ratio: 1/1;
-  box-sizing: border-box; /* Add box-sizing property */
 }
 
-.arrow-down {
-  width: 0;
-  height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-right: 10px solid black;
-  /*pointer-events:none;*/
-  z-index: -1;
-  display: flex;
-  justify-content: center;
+.compact-button:hover {
+  background-color: #ddd;
 }
 
-.arrow-up {
-  width: 0;
-  height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 10px solid black;
-  /*pointer-events:none;*/
-  z-index: -1;
-  display: flex;
-  justify-content: center;
+.compact-button:active {
+  background-color: #bbb;
 }
 

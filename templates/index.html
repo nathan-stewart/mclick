@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
-        <title>MidiClick</title>
+        <title>MClick</title>
         <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous"-->
         <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }} ">
         <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/buttons.css') }} ">
@@ -23,6 +23,7 @@
 
     <body>
         <div id="settings-data" data="{{ parameters }}" style="display: none;"></div>
+
         <!-- Header/Logo -->
         <div class="row">
             <img class="logo" alt="logo" src="{{ url_for('static', filename='img/mclick.svg') }}" >
@@ -45,7 +46,19 @@
             <!-- Measure -->
             <div class="row">
                 <div class="legend">
-                    <img alt="downbeat" src="{{ url_for('static', filename='img/measure.svg') }}"  id="icon-measure">
+                    <div class="time_signature">
+                        <p id="disp_ts_num"></p>
+                        <p id="disp_ts_denom"></p>
+                    </div>
+                    <div class="button-box">
+                        <div class="compact-button-row">
+                            <div class="compact-buttons">
+                              <button class="compact-button compact-button-left" id="ts_down">&#8249;</button>
+                              <button class="compact-button compact-button-right" id="ts_up">&#8250;</button>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
 
                 <div class="sliderbox">
@@ -53,23 +66,17 @@
                 </div>
 
                 <div class="gadget">
-                    <button class="down-button">
-                        <div class="arrow-down" id="meter_down" title="down"></div>
-                    </button>
-                    <img alt="count" id="measure_length" >
-                    <button class="up-button">
-                        <div class="arrow-up" id="meter_up" title="up"></div>
-                    </button>
                 </div>
             </div>
 
-            <!-- Beat -->
+
+            <!-- beat -->
             <div class="row">
                 <div class="legend">
                     <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}"  id="icon-beat">
                 </div>
                 <div class="sliderbox">
-                <input type="range" min=0 max=127 class="slider"  id="beat_volume">
+                    <input class="slider"  id="beat_volume" type="range" min=0 max=127 >
                 </div>
                 <div class="gadget"></div>
             </div>
@@ -109,20 +116,20 @@
                 </div>
                 <div class="gadget"></div>
             </div>
-            <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
-            <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
-            <!--script type="text/javascript"> set_meter_icon(4);</script-->
         </div>
-    </div>
-    <div id="disconnect_warning" class="disconnected" >
-        Server shut down
-    </div>
-    <div id="note_entry_dialog" class="dialog">
-        <div class="dialog-content">
-            <label for="spinbox">Note Number:</label>
-            <input type="number" id="note_number" name="spinbox" min="0" max="127" step="1">
-            <button onclick="note_entry_close()">Close</button>
         </div>
-    </div>
+        <div id="disconnect_warning" class="disconnected" >
+            Server shut down
+        </div>
+        <div id="note_entry_dialog" class="dialog">
+            <div class="dialog-content">
+                <label for="spinbox">Note Number:</label>
+                <input type="number" id="note_number" name="spinbox" min="0" max="127" step="1">
+                <button onclick="note_entry_close()">Close</button>
+            </div>
+        </div>
+        </div>
+        <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
     </body>
 </html>
