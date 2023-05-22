@@ -8,7 +8,6 @@ var id_ts_down;
 var id_icon_beat;
 var id_icon_eighth;
 var id_icon_sixteenth;
-var id_slider_tempo;
 var id_val_tempo;
 var id_vol_measure;
 var id_vol_beat;
@@ -104,12 +103,12 @@ function note_entry_close(){
 
 function send_updates()
 {
-    settings.tempo             = parseInt(document.getElementById("tempo_output").value);
-    settings.measure.volume    = parseInt(document.getElementById("measure_volume").value);
-    settings.beat.volume       = parseInt(document.getElementById("beat_volume").value);
-    settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
-    settings.swing             = parseInt(document.getElementById("swing_value").value);
-    settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
+    settings.tempo             = parseInt(id_val_tempo.value)
+    settings.measure.volume    = parseInt(id_vol_measure.value);
+    settings.beat.volume       = parseInt(id_vol_beat.value);
+    settings.eighths.volume    = parseInt(id_vol_eighth.value);
+    settings.swing             = parseInt(id_val_swing.value);
+    settings.sixteenths.volume = parseInt(id_vol_sixteenth.value);
     socket.emit("update_from_gui", settings);
     console.log("Sent update_from_gui");
 }
@@ -118,41 +117,27 @@ socket.on('update', function(data) {
     console.log("on_update: begin");
 });
 
-function enable_children(nodes, state)
+
+function swing_check()
 {
-    for (child of nodes) {
-        child.disabled = state;
-    }
+    let compound = ["6/8","9/8","12/8"].includes(settings.time_signature);
+    id_vol_sixteenth.disabled = (id_val_swing.value > 0) && !compound;
+    id_val_swing.disabled = (id_vol_sixteenth.value > 0) && !compound;
 }
 
 function on_change(event)
 {
-    console.log("on_change: " + event.target.id)
-
-    sixteenths = document.getElementById("sixteenth_volume");
-    swing = document.getElementById("swing_value");
-    const switchables = {
-        swing    : [ document.getElementById("swing_value")],
-        sixteenths: [ document.getElementById("sixteenth_volume")]
-    };
-
-    switch (event.target.id) {
-        case "swing_value": 
-            enable_children(switchables.sixteenths, swing.value > 0);
-            break;
-        case "sixteenth_volume": 
-            enable_children(switchables.swing, sixteenths.value > 0);
-            break;
-        default:
-            break;
-    };
+    console.log("on_change: " + event.target.id);
+    if (["swing_value", "eighth_volume", "sixteenth_volume"].includes(event.target.id))
+    {
+        swing_check();
+    }
     send_updates();
 }
 
 function update_tempo_drag(event)
 {
-    drag_value = document.getElementById("tempo_slider").value;
-    document.getElementById("tempo_output").value = drag_value;
+    id_disp_tempo.value = id_val_tempo.value;
     // don't send it here - that will happen in on_change
 }
 
@@ -176,6 +161,7 @@ function meter_clicked(event)
     meter_idx = Math.max(0, Math.min(meter_idx, meters.length - 1));
     settings.time_signature = meters[meter_idx];
     show_meter();
+    swing_check();
     send_updates();
 }
 
@@ -234,7 +220,6 @@ function myLoad(event)
     id_icon_beat  = document.getElementById("icon-beat");
     id_icon_eighth = document.getElementById("icon-eighth");
     id_icon_sixteenth = document.getElementById("icon-sixteenth");
-    id_slider_tempo  = document.getElementById("tempo_slider");
     id_val_tempo  = document.getElementById("tempo_slider");
     id_vol_measure  = document.getElementById("measure_volume");
     id_vol_beat = document.getElementById("beat_volume");
@@ -257,9 +242,10 @@ function myLoad(event)
     id_icon_sixteenth.addEventListener("click", set_midi_note);
     id_disp_ts_num.addEventListener("click", set_midi_note);
     id_disp_ts_denom.addEventListener("click", set_midi_note);
-    id_slider_tempo.addEventListener("input", update_tempo_drag);
 
+    id_val_tempo.addEventListener("input", update_tempo_drag);
     id_val_tempo.addEventListener("change", on_change);
+
     id_vol_measure.addEventListener("change", on_change);
     id_vol_beat.addEventListener("change", on_change);
     id_vol_eighth.addEventListener("change", on_change);
