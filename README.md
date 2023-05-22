@@ -1,5 +1,4 @@
-# MClick
-
+# MClick ![Logo](https://github.com/nathan-stewart/mclick/blob/master/static/img/favicon.ico)
 ## Intro
 MClick (MIDI Click) is a web service controlled MIDI Metronome. 
 The idea is that the service runs on a Linux box, when you connect to the web page it serves, 
