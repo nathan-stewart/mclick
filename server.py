@@ -39,7 +39,7 @@ def index():
 def on_update(parameters):
     global ticker
     print(parameters)
-    ticker.update(paramaters)
+    ticker.update(parameters)
     # TBD - save settings
 
 @socketio.on('connect')

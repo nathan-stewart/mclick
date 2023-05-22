@@ -91,7 +91,6 @@ class Ticker(threading.Thread):
 
             self.make_rhythm_from_song()
             #plot_midi(self.song)
-            print(self.settings)
             for msg in self.song.play():
                 if self.stopping.is_set() or not self.settings:
                     break # break only goes out one loop

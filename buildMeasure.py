@@ -96,37 +96,39 @@ def make_template_measures(params, measures, ppq=480):
         track.append(mido.Message('note_on', channel=9, note=0, velocity=0, time=measure_length - t))
 
     for ts in measures:
-        ticks_per_beat = int(ppq * 4 / ts[1])
-        measure_length = ts[0] * ticks_per_beat
-        add_track('measure', [0])
+        num_beats = ts[0]
+        denom = ts[1] 
+        ticks_per_beat = int(ppq * 4 / denom)
+        measure_length = num_beats * ticks_per_beat
+        add_track('measure', [0]) 
 
         skip = False
         if 'skip' in params['beat'].keys():
             skip = params['beat']['skip']
         swing = min(1.0, max(0.0, params['swing'] / 100.0))
-        compound = True if ts[0] in [6,9,12] else False
+        compound = True if num_beats in [6,9,12] else False
 
         # don't play the one - it's played by the measure
-        beats = [int(b * ticks_per_beat)  for b in range(1,ts[0]) ]
-        if skip and ts[0] == 3: # in 3/4 time, skip beat plays the 3
+        beats = [int(b * ticks_per_beat)  for b in range(1,num_beats) ]
+        if skip and ts == '3/4': # in 3/4 time, skip beat plays the 3
             beats = [2 * ticks_per_beat]
-        elif skip and ts[0] == 4: # in 4/4 time skip beat plays 2 and 4
+        elif skip and ts == '4/4': # in 4/4 time skip beat plays 2 and 4
             beats = [b * ticks_per_beat for b in [1,3]]
         elif compound:
             # signatures considered compound
             # we play beats on 1, 4, 7, 10 and 8ths elsewhere
-            beats = [int(b * ticks_per_beat) for b in range(1,ts[0]) if not b%3]
+            beats = [int(b * ticks_per_beat) for b in range(1,num_beats) if not b%3]
         add_track('beat', beats)
 
         if compound:
             # compounds play eights as weak beats - they're not half beats
             # we skipped these beats above
-            eighths = [ int(n * ticks_per_beat) for n in range(ts[0]) if n % 3 ]
+            eighths = [ int(n * ticks_per_beat) for n in range(num_beats) if n % 3 ]
         else:
-            eights = [ int(n * ticks_per_beat  /2.0) for n in range(ts[0]* 2)]
+            eights = [ int(n * ticks_per_beat  /2.0) for n in range(num_beats * 2)]
             # capping swing at dotted eighth as a hard swing
             sw_adj = int(ticks_per_beat * swing / 4.0)
-            eighths = [ int(n * ticks_per_beat /2.0 +(n % 2) * sw_adj) for n in range(ts[0] * 2) ]
+            eighths = [ int(n * ticks_per_beat /2.0 +(n % 2) * sw_adj) for n in range(num_beats * 2) ]
         add_track('eighths', eighths)
 
         subdivide = True if ((params['sixteenths']['volume'] > 0) and
@@ -141,11 +143,11 @@ def make_template_measures(params, measures, ppq=480):
         sixteenths = []
         if compound:
             sw_adj = int(ticks_per_beat / 4.0  * swing)
-            sixteenths = [int(n * ticks_per_beat  /2.0 + sw_adj*(n%2)) for n in range(ts[0] * 2) ]
+            sixteenths = [int(n * ticks_per_beat  /2.0 + sw_adj*(n%2)) for n in range(num_beats * 2) ]
         else:
             # if time signature is simple and we are swinging eighth's don't play 16ths
             if swing <= 0.001:
-                sixteenths = [int(n * ppq / 4.0) for n in range(ts[0] * 4)]
+                sixteenths = [int(n * ppq / 4.0) for n in range(num_beats * 4)]
         add_track('sixteenths', sixteenths)
     return mido.merge_tracks(parts)
 
@@ -156,7 +158,8 @@ def make_rhythm_track(song, params):
 
     measures = []
     if len(song.tracks) == 0:
-        ts = params['time_signature']
+        (num, denom) = params['time_signature'].split('/')
+        ts = (int(num), int(denom))
         measures = [ ts ]
         song.tracks.append(mido.MidiTrack())
         song.tracks[0].append(
@@ -172,7 +175,8 @@ def make_rhythm_track(song, params):
 if __name__ == "__main__":
     from plotMeasure import plot_midi, plot_midi_events
     params = Settings()
-    for ts in params['measure_options']:
+    for ts in []:
+    #for ts in params['measure_options']:
         params['time_signature'] = ts
         params['measure']['note'] = 10
         params['measure']['volume'] = 127
@@ -190,6 +194,7 @@ if __name__ == "__main__":
         plot_midi(m, title=ts)
 
     m = mido.MidiFile('demo/cwm_rhondda.mid')
+    print(params.to_json())
     m.tracks.append( make_rhythm_track(m, params))
     plot_midi(m, title=m.filename)
     
