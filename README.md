@@ -1,6 +1,6 @@
-#MClick
+# MClick
 
-##Intro
+## Intro
 MClick (MIDI Click) is a web service controlled MIDI Metronome. 
 The idea is that the service runs on a Linux box, when you connect to the web page it serves, 
 it begins to publish MIDI note information to function as a metronome. Whenever parameters are
@@ -24,11 +24,11 @@ on the beat sound.
 Swing now disables 16th notes in the gui, except in compound meters, in which case it it swings 16ths in
 6/8 and 12/8. Additionally, 16th notes will disable swing if enabled in simple meters. 
 
-##TBD:
+## TBD:
 Transport Controls for Repeat, Forward/Rewind, Next/Previous song. I'm not planning to add a track list editor,
 deferring that to the user. Point it to the folder you wish to practice instead.
 
-##Issues:
+## Issues:
 MClick handles anacrusis, adding an a full measure for the count in. It currently has a bug where the final short
 measure is missing. The intent is to repeat back to the intro measure which will thus be a full measure, and only
 play the final short measure when not repeating. 
