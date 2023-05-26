@@ -70,6 +70,9 @@ class Ticker(threading.Thread):
         else:
             self.midi_teardown()
 
+    def action(self, source):
+        print(source)
+
     def run(self):
         self.play_index = -1
         while not self.stopping.is_set():
