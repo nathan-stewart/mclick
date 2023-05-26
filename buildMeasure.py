@@ -175,8 +175,7 @@ def make_rhythm_track(song, params):
 if __name__ == "__main__":
     from plotMeasure import plot_midi, plot_midi_events
     params = Settings()
-    for ts in []:
-    #for ts in params['measure_options']:
+    for ts in params['measure_options']:
         params['time_signature'] = ts
         params['measure']['note'] = 10
         params['measure']['volume'] = 127
@@ -186,7 +185,7 @@ if __name__ == "__main__":
         params['eighths']['volume'] = 31
         params['sixteenths']['note']= 13
         params['sixteenths']['volume']= 0
-        params['swing'] = 0
+        params['swing'] = 80
 
         m = mido.MidiFile()
 
