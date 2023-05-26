@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="800px"
+   height="800px"
+   viewBox="0 0 104 104"
+   version="1.1"
+   id="svg18"
+   sodipodi:docname="shuffle-mix-svgrepo-com.svg"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15)">
+  <metadata
+     id="metadata22">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>50-multimeda-shuffle-mix</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
+     id="namedview20"
+     showgrid="false"
+     inkscape:zoom="1.09375"
+     inkscape:cx="400"
+     inkscape:cy="400"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg18"
+     inkscape:document-rotation="0" />
+  <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+  <title
+     id="title2">50-multimeda-shuffle-mix</title>
+  <desc
+     id="desc4">Created with Sketch.</desc>
+  <defs
+     id="defs6" />
+  <circle
+     id="button_bg"
+     fill="#ffffff"
+     cx="52"
+     cy="52"
+     style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round"
+     r="50" />
+  <g
+     id="g6614">
+    <g
+       id="g878"
+       style="fill:none">
+      <path
+         d="M 52.315918,52.916016 49.617676,44.5 C 48.275257,40.357864 42.711073,37 37.187012,37 H 24"
+         id="Layer-2"
+         style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round" />
+      <path
+         d="m 52,52 2.430664,7.5 c 1.342419,4.142136 6.906602,7.5 12.430664,7.5 h 10"
+         id="Layer-3"
+         style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round" />
+      <path
+         d="m 48.407116,62 c -2.285032,2.988343 -6.737619,5.144746 -11.16444,5.144746 H 24"
+         id="Layer-4"
+         style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round" />
+      <path
+         d="M 56,41.903915 C 58.335788,39.041235 62.667163,37 66.974149,37 h 10"
+         id="Layer-5"
+         style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round" />
+    </g>
+    <g
+       id="g6604">
+      <path
+         id="Layer-6"
+         d="m 72,61 10,6 -10,6 z"
+         sodipodi:nodetypes="cccc"
+         style="fill:#90a3ad;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round" />
+      <path
+         id="Layer-7"
+         d="m 72,31 10,6 -10,6 z"
+         sodipodi:nodetypes="cccc"
+         style="fill:#90a3ad;fill-opacity:1;fill-rule:evenodd;stroke:#263238;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round" />
+    </g>
+  </g>
+</svg>

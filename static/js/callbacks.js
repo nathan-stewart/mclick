@@ -22,6 +22,14 @@ var id_dlg_note_number;
 var id_note_number;
 var id_form;
 
+var id_load;
+var id_prev_song;
+var id_begin_song;
+var id_play;
+var id_next_song;
+var id_repeat;
+var id_shuffle;
+
 function auto_refresh() {
     if (disconnected){
         local.reload();
@@ -135,6 +143,41 @@ function on_change(event)
     send_updates();
 }
 
+function push_button(id, state)
+{    
+    let button_container = document.getElementById(id);
+    let button = button_container.querySelector("input.transport_button");
+    let svg = button.getAttribute("src");
+    let base = svg.replace("-pushed", "");
+    base = base.replace(".svg", "");
+    button.setAttribute("src", state ? base + "-pushed.svg" : base + ".svg");
+}
+
+function on_transport(event)
+{
+    console.log(event.currentTarget.id);
+
+    switch (event.currentTarget.id) {
+        case "id_load": break;
+            // pull up folder browser
+        case "id_prev_song":break;
+        case "id_begin_song": break;
+        case "id_play": break;
+        case "id_next_song": break;
+        case "id_repeat":
+            settings.repeat = !settings.repeat;
+            push_button(event.currentTarget.id, settings.repeat);
+            break;
+
+        case "id_shuffle":
+            settings.shuffle = !settings.shuffle;
+            push_button(event.currentTarget.id, settings.shuffle);
+            break;
+    }
+    socket.emit("transport", event.currentTarget.id);
+}
+
+
 function update_tempo_drag(event)
 {
     id_disp_tempo.value = id_val_tempo.value;
@@ -232,7 +275,15 @@ function myLoad(event)
     id_disconnect = document.getElementById("disconnect_warning");
     id_dlg_note_number = document.getElementById("note_entry_dialog");
     id_note_number = document.getElementById("note_number");
-    id_form = document.getElementById("the_form");
+    id_form = document.getElementById("id_form");
+    id_load = document.getElementById("id_load");
+    id_prev_song = document.getElementById("id_prev_song");
+    id_begin_song = document.getElementById("id_begin_song");
+    id_play = document.getElementById("id_play");
+    id_next_song = document.getElementById("id_next_song");
+    id_repeat = document.getElementById("id_repeat");
+    id_shuffle = document.getElementById("id_shuffle");
+
 
     id_ts_up.addEventListener("click", meter_clicked);
     id_ts_down.addEventListener("click", meter_clicked);
@@ -251,6 +302,14 @@ function myLoad(event)
     id_vol_eighth.addEventListener("change", on_change);
     id_val_swing.addEventListener("change", on_change);
     id_vol_sixteenth.addEventListener("change", on_change);
+    
+    id_load.addEventListener("click", on_transport);
+    id_prev_song.addEventListener("click", on_transport);
+    id_begin_song.addEventListener("click", on_transport);
+    id_play.addEventListener("click", on_transport);
+    id_next_song.addEventListener("click", on_transport);
+    id_repeat.addEventListener("click", on_transport);
+    id_shuffle.addEventListener("click", on_transport);
 
     id_val_tempo.value = settings.tempo;
     id_disp_tempo.value = settings.tempo;

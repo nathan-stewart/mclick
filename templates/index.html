@@ -1,135 +1,167 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
-        <title>MClick</title>
-        <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous"-->
-        <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }} ">
-        <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/buttons.css') }} ">
-        <link type="text/css"  rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }} ">
 
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
-        <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
-        <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
-        <meta name="msapplication-TileColor" content="#ffffff">
-        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-        <meta name="theme-color" content="#ffffff">
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-        <meta http-equiv="Pragma" content="no-cache" />
-        <meta http-equiv="Expires" content="0" />
-    </head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>MClick</title>
+    <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous"-->
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }} ">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/buttons.css') }} ">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }} ">
 
-    <body>
-        <div id="settings-data" data="{{ parameters }}" style="display: none;"></div>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
 
-        <!-- Header/Logo -->
+<body>
+    <div id="settings-data" data="{{ parameters }}" style="display: none;"></div>
+
+    <!-- Header/Logo -->
+    <div class="row">
+        <img class="logo" alt="logo" src="{{ url_for('static', filename='img/mclick.svg') }}">
+        <div class="title">MClick</div>
+    </div>
+    <div class="row">
+        <p>
+    </div>
+
+    <div id="id_form">
+        <!-- Tempo -->
         <div class="row">
-            <img class="logo" alt="logo" src="{{ url_for('static', filename='img/mclick.svg') }}" >
-            <div class="title">MClick</div>
-        </div>
-        <div class="row"><p> </div>
-
-        <div id="the_form">
-            <!-- Tempo -->
-            <div class="row">
-                <div class="legend">
-                    <output class="tempo" id="tempo_output"></output>
-                </div>
-                <div class="sliderbox">
-                    <input type="range" id="tempo_slider" min=40 max=240 class="slider" >
-                </div>
-                <div class="gadget"></div>
+            <div class="legend">
+                <output class="tempo" id="tempo_output"></output>
             </div>
+            <div class="sliderbox">
+                <input type="range" id="tempo_slider" min=40 max=240 class="slider">
+            </div>
+            <div class="gadget"></div>
+        </div>
 
-            <!-- Measure -->
-            <div class="row">
-                <div class="legend">
-                    <div class="time_signature">
-                        <p id="disp_ts_num"></p>
-                        <p id="disp_ts_denom"></p>
-                    </div>
-                    <div class="button-box">
-                        <div class="compact-button-row">
-                            <div class="compact-buttons">
-                              <button class="compact-button compact-button-left" id="ts_down">&#8249;</button>
-                              <button class="compact-button compact-button-right" id="ts_up">&#8250;</button>
-                            </div>
+        <!-- Measure -->
+        <div class="row">
+            <div class="legend">
+                <div class="time_signature">
+                    <p id="disp_ts_num"></p>
+                    <p id="disp_ts_denom"></p>
+                </div>
+                <div class="button-box">
+                    <div class="compact-button-row">
+                        <div class="compact-buttons">
+                            <button class="compact-button compact-button-left" id="ts_down">&#8249;</button>
+                            <button class="compact-button compact-button-right" id="ts_up">&#8250;</button>
                         </div>
-
                     </div>
-                </div>
 
-                <div class="sliderbox">
-                    <input class="slider" id="measure_volume" type="range" min=0 max=127>
-                </div>
-
-                <div class="gadget">
                 </div>
             </div>
 
-
-            <!-- beat -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}"  id="icon-beat">
-                </div>
-                <div class="sliderbox">
-                    <input class="slider"  id="beat_volume" type="range" min=0 max=127 >
-                </div>
-                <div class="gadget"></div>
+            <div class="sliderbox">
+                <input class="slider" id="measure_volume" type="range" min=0 max=127>
             </div>
 
-            <!-- Eighths -->
-            <div class="row">
-                <div class="legend">
-                    <img alt="eighths" src="{{ url_for('static', filename='img/eighth.svg') }}"  id="icon-eighth">
-                </div>
-                <div class="sliderbox">
-                    <input class="slider"  id="eighth_volume" type="range" min=0 max=127 >
-                </div>
-                <div class="gadget"></div>
+            <div class="gadget"></div>
+        </div>
+
+        <!-- beat -->
+        <div class="row">
+            <div class="legend">
+                <img alt="beat" src="{{ url_for('static', filename='img/quarter.svg') }}" id="icon-beat">
+            </div>
+            <div class="sliderbox">
+                <input class="slider" id="beat_volume" type="range" min=0 max=127>
+            </div>
+            <div class="gadget"></div>
+        </div>
+
+        <!-- Eighths -->
+        <div class="row">
+            <div class="legend">
+                <img alt="eighths" src="{{ url_for('static', filename='img/eighth.svg') }}" id="icon-eighth">
+            </div>
+            <div class="sliderbox">
+                <input class="slider" id="eighth_volume" type="range" min=0 max=127>
+            </div>
+            <div class="gadget"></div>
+        </div>
+
+        <!-- Swing -->
+        <div id=swing_box class="row">
+            <div class="legend">
+                <img alt="straight" src="{{ url_for('static', filename='img/straight.svg') }}">
             </div>
 
-            <!-- Swing -->
-            <div id=swing_box class="row">
-                <div class="legend">
-                    <img alt="straight" src="{{ url_for('static', filename='img/straight.svg') }}" >
-                </div>
-
-                <div class="sliderbox">
-                    <input class="slider" id="swing_value" type="range" min=0 max=100 >
-                </div>
-                <div class="gadget">
-                    <img alt="swing" src="{{ url_for('static', filename='img/swing.svg') }}" >
-                </div>
+            <div class="sliderbox">
+                <input class="slider" id="swing_value" type="range" min=0 max=100>
             </div>
-
-            <!-- Sixteenths -->
-            <div id="sixteenths_box" class="row">
-                <div class="legend">
-                    <img alt="sixteenths" src="{{ url_for('static', filename='img/sixteenth.svg') }}"  id="icon-sixteenth">
-                </div>
-                <div class="sliderbox">
-                    <input class="slider"  id="sixteenth_volume" type="range" min=0 max=127 >
-                </div>
-                <div class="gadget"></div>
+            <div class="gadget">
+                <img alt="swing" src="{{ url_for('static', filename='img/swing.svg') }}">
             </div>
         </div>
-        </div>
-        <div id="disconnect_warning" class="disconnected" >
-            Server shut down
-        </div>
-        <div id="note_entry_dialog" class="dialog">
-            <div class="dialog-content">
-                <label for="spinbox">Note Number:</label>
-                <input type="number" id="note_number" name="spinbox" min="0" max="127" step="1">
-                <button onclick="note_entry_close()">Close</button>
+
+        <!-- Sixteenths -->
+        <div id="sixteenths_box" class="row">
+            <div class="legend">
+                <img alt="sixteenths" src="{{ url_for('static', filename='img/sixteenth.svg') }}" id="icon-sixteenth">
             </div>
+            <div class="sliderbox">
+                <input class="slider" id="sixteenth_volume" type="range" min=0 max=127>
+            </div>
+            <div class="gadget"></div>
+        </div>        
+    </div>
+    <div class="transport_container">
+        <div id="id_load">
+            <input alt="load" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/eject-load.svg') }}" />
         </div>
+        <div id="id_prev_song">
+            <input alt="prev" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/back-previous.svg') }}" />
         </div>
-        <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
-    </body>
+        <div id="id_begin_song">
+            <input alt="begin" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/fast-backward.svg') }}" />
+        </div>
+        <div id="id_play">
+            <input alt="play" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/play.svg') }}" />
+        </div>
+        <div id="id_next_song">
+            <input alt="next" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/next-end.svg') }}" />
+        </div>
+        <div id="id_repeat">
+            <input alt="repeat" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/repeat.svg') }}" />
+        </div>
+        <div id="id_shuffle">
+            <input alt="shuffle" type="image" class="transport_button"
+                src="{{ url_for('static', filename='img/shuffle-mix.svg') }}" />
+        </div>
+    </div>
+
+    <div id="disconnect_warning" class="disconnected">
+        Server shut down
+    </div>
+    <div id="note_entry_dialog" class="dialog">
+        <div class="dialog-cSontent">
+            <label for="spinbox">Note Number:</label>
+            <input type="number" id="note_number" name="spinbox" min="0" max="127" step="1">
+            <button onclick="note_entry_close()">Close</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/callbacks.js') }}"></script>
+</body>
+
 </html>
