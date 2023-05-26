@@ -48,6 +48,11 @@ def on_connect():
     defaults = Settings()
     ticker.update(defaults)
 
+@socketio.on('transport')
+def on_transport(source):
+    global ticker
+    ticker.action(source)
+
 @socketio.on('disconnect')
 def on_disconnect():
     global ticker
