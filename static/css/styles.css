@@ -44,14 +44,17 @@
 .legend {
     display: flex;
     align-items: flex-end;
-    justify-content: flex-start;
+    justify-content: center;
     height: 100%;
-    width: 100px;
+    width: 70px;
     margin: 10px;
 }
 
 .tempo {
+    display: flex;
     font-size: xx-large;
+    width: 70px;
+    justify-content: center;
 }
 
 .sliderbox{
