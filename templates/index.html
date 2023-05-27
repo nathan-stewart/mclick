@@ -7,7 +7,6 @@
     <title>MClick</title>
     <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous"-->
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }} ">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/buttons.css') }} ">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }} ">
 
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
@@ -49,20 +48,15 @@
         <!-- Measure -->
         <div class="row">
             <div class="legend">
-                <div class="time_signature">
-                    <p id="disp_ts_num"></p>
-                    <p id="disp_ts_denom"></p>
-                </div>
-                <div class="button-box">
-                    <div class="compact-button-row">
-                        <div class="compact-buttons">
-                            <button class="compact-button compact-button-left" 
-                                    id="ts_down">&#8249;</button>
-                            <button class="compact-button compact-button-right" 
-                                    id="ts_up">&#8250;</button>
-                        </div>
+                <div class="time_signature_group">
+                    <button class="compact-button compact-button-left" id="ts_down">&#8249;</button>                                
+
+                    <div class="time_signature">
+                        <p id="disp_ts_num"></p>
+                        <p id="disp_ts_denom"></p>
                     </div>
 
+                    <button class="compact-button compact-button-right" id="ts_up">&#8250;</button>
                 </div>
             </div>
 
