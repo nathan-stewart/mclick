@@ -54,9 +54,10 @@ function set_midi_note(event) {
     console.log("clicked icon button: " + event.target.id);
     
     note_selected = event.target.id;
-    let value;
+    let value = -1;
     switch (event.target.id) {
-        case "ts_edit"  : 
+        case "disp_ts_num"  :
+        case "disp_ts_denom": 
             value = settings.measure.note;
             // should this be time signature dialog? Do both note and TS from a new dialog?
             break;
@@ -71,12 +72,15 @@ function set_midi_note(event) {
             break;
         default:
             console.log("unknown click - id = " + event.target.id);
-            id_dlg_note_number.style.display = "none";
             return;
     };
 
-    id_note_number.value = value;
-    id_dlg_note_number.style.display = "block"
+    if (value > 0)
+    {
+        id_note_number.value = value;
+        id_dlg_note_number.style.display = "block"
+    
+    }
 }
 
 function note_entry_close(){
@@ -283,16 +287,17 @@ function myLoad(event)
     id_next_song = document.getElementById("id_next_song");
     id_repeat = document.getElementById("id_repeat");
     id_shuffle = document.getElementById("id_shuffle");
-
-
+    
+    // the up/down buttons not the display
     id_ts_up.addEventListener("click", meter_clicked);
     id_ts_down.addEventListener("click", meter_clicked);
 
-    id_icon_beat.addEventListener("click", set_midi_note);
-    id_icon_eighth.addEventListener("click", set_midi_note);
-    id_icon_sixteenth.addEventListener("click", set_midi_note);
-    id_disp_ts_num.addEventListener("click", set_midi_note);
-    id_disp_ts_denom.addEventListener("click", set_midi_note);
+    id_icon_beat.addEventListener("dblclick", set_midi_note);
+    id_icon_eighth.addEventListener("dblclick", set_midi_note);
+    id_icon_sixteenth.addEventListener("dblclick", set_midi_note);
+    // The display not the up/down buttons!
+    id_disp_ts_num.addEventListener("dblclick", set_midi_note);    
+    id_disp_ts_denom.addEventListener("dblclick", set_midi_note);
 
     id_val_tempo.addEventListener("input", update_tempo_drag);
     id_val_tempo.addEventListener("change", on_change);
