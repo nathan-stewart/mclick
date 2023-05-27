@@ -5,6 +5,7 @@ var disconnected = false;
 
 var id_ts_up;
 var id_ts_down;
+var id_ts_group;
 var id_icon_beat;
 var id_icon_eighth;
 var id_icon_sixteenth;
@@ -88,8 +89,8 @@ function note_entry_close(){
 
     let value = parseInt(id_note_number.value);
     switch (note_selected) {
-        case 'id_disp_ts_num': 
-        case 'id_disp_ts_denom': 
+        case 'disp_ts_num': 
+        case 'disp_ts_denom': 
             settings.measure.note = value;
             break;
         case 'icon-beat':
@@ -264,6 +265,7 @@ function myLoad(event)
     // tried to make these const global but not all fields are ready when this loads
     id_ts_up = document.getElementById("ts_up");
     id_ts_down = document.getElementById("ts_down");
+    id_ts_dcg = document.getElementById("ts_dbl_click_group");
     id_icon_beat  = document.getElementById("icon-beat");
     id_icon_eighth = document.getElementById("icon-eighth");
     id_icon_sixteenth = document.getElementById("icon-sixteenth");
@@ -291,13 +293,13 @@ function myLoad(event)
     // the up/down buttons not the display
     id_ts_up.addEventListener("click", meter_clicked);
     id_ts_down.addEventListener("click", meter_clicked);
+    
+    // The display not the up/down buttons!
+    id_ts_dcg.addEventListener("dblclick", set_midi_note);    
 
     id_icon_beat.addEventListener("dblclick", set_midi_note);
     id_icon_eighth.addEventListener("dblclick", set_midi_note);
     id_icon_sixteenth.addEventListener("dblclick", set_midi_note);
-    // The display not the up/down buttons!
-    id_disp_ts_num.addEventListener("dblclick", set_midi_note);    
-    id_disp_ts_denom.addEventListener("dblclick", set_midi_note);
 
     id_val_tempo.addEventListener("input", update_tempo_drag);
     id_val_tempo.addEventListener("change", on_change);
