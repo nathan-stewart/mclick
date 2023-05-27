@@ -8,6 +8,7 @@ var id_ts_down;
 var id_ts_group;
 var id_icon_beat;
 var id_icon_eighth;
+var id_icon_swing;
 var id_icon_sixteenth;
 var id_val_tempo;
 var id_vol_measure;
@@ -136,6 +137,8 @@ function swing_check()
     let compound = ["6/8","9/8","12/8"].includes(settings.time_signature);
     id_vol_sixteenth.disabled = (id_val_swing.value > 0) && !compound;
     id_val_swing.disabled = (id_vol_sixteenth.value > 0) && !compound;
+    let new_swing_icon = compound ? "/static/img/swing-sixteenths.svg" : "/static/img/swing-eighths.svg";
+    id_icon_swing.setAttribute("src", new_swing_icon);
 }
 
 function on_change(event)
@@ -269,6 +272,7 @@ function myLoad(event)
     id_icon_beat  = document.getElementById("icon-beat");
     id_icon_eighth = document.getElementById("icon-eighth");
     id_icon_sixteenth = document.getElementById("icon-sixteenth");
+    id_icon_swing = document.getElementById("icon-swing");
     id_val_tempo  = document.getElementById("tempo_slider");
     id_vol_measure  = document.getElementById("measure_volume");
     id_vol_beat = document.getElementById("beat_volume");
