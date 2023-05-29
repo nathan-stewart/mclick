@@ -2,35 +2,7 @@ var socket = io.connect();
 var settings = JSON.parse(document.getElementById('settings-data').getAttribute('data'));
 let note_selected;
 var disconnected = false;
-
-var id_ts_up;
-var id_ts_down;
-var id_ts_group;
-var id_icon_beat;
-var id_icon_eighth;
-var id_icon_swing;
-var id_icon_sixteenth;
-var id_val_tempo;
-var id_vol_measure;
-var id_vol_beat;
-var id_vol_eighth;
-var id_val_swing;
-var id_vol_sixteenth;
-var id_disp_tempo;
-var id_disp_ts_num;
-var id_disp_ts_denom;
-var id_disconnect;
-var id_dlg_note_number;
-var id_note_number;
-var id_form;
-
-var id_load;
-var id_prev_song;
-var id_begin_song;
-var id_play;
-var id_next_song;
-var id_repeat;
-var id_shuffle;
+var paused = false;
 
 function auto_refresh() {
     if (disconnected){
@@ -42,14 +14,14 @@ setTimeout(auto_refresh, 5000);
 
 socket.on("connect", function() { 
     console.log("connected to server");
-    id_form.style.display="block";
-    id_disconnect.style.display="none";
+    document.getElementById("id_form").style.display="block";
+    document.getElementById("disconnect_warning").style.display="none";
 });
 
 socket.on("disconnect", function() {
     console.log("disconnected from server");
-    id_form.style.display="none";
-    id_disconnect.style.display="block";
+    document.getElementById("id_form").style.display="none";
+    document.getElementById("disconnect_warning").style.display="block";
 });
 
 function set_midi_note(event) {
@@ -79,16 +51,16 @@ function set_midi_note(event) {
 
     if (value > 0)
     {
-        id_note_number.value = value;
-        id_dlg_note_number.style.display = "block"
+        document.getElementById("note_number").value = value;
+        document.getElementById("note_entry_dialog").style.display = "block"
     
     }
 }
 
 function note_entry_close(){
-    id_dlg_note_number.style.display = "none";
+    document.getElementById("note_entry_dialog").style.display = "none";
 
-    let value = parseInt(id_note_number.value);
+    let value = parseInt(document.getElementById("note_number").value);
     switch (note_selected) {
         case 'disp_ts_num': 
         case 'disp_ts_denom': 
@@ -118,11 +90,11 @@ function note_entry_close(){
 function send_updates()
 {
     settings.tempo             = parseInt(id_val_tempo.value)
-    settings.measure.volume    = parseInt(id_vol_measure.value);
-    settings.beat.volume       = parseInt(id_vol_beat.value);
-    settings.eighths.volume    = parseInt(id_vol_eighth.value);
-    settings.swing             = parseInt(id_val_swing.value);
-    settings.sixteenths.volume = parseInt(id_vol_sixteenth.value);
+    settings.measure.volume    = parseInt(document.getElementById("measure_volume").value);
+    settings.beat.volume       = parseInt(document.getElementById("beat_volume").value);
+    settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
+    settings.swing             = parseInt(document.getElementById("swing_value").value);
+    settings.sixteenths.volume = parseInt(document.getElementById("sixteenth_volume").value);
     socket.emit("update_from_gui", settings);
     console.log("Sent update_from_gui");
 }
@@ -134,11 +106,15 @@ socket.on('update', function(data) {
 
 function swing_check()
 {
+    let id_val_swing = document.getElementById("swing_value");
+    let id_vol_sixteenth = document.getElementById("sixteenth_volume");    
     let compound = ["6/8","9/8","12/8"].includes(settings.time_signature);
+
     id_vol_sixteenth.disabled = (id_val_swing.value > 0) && !compound;
     id_val_swing.disabled = (id_vol_sixteenth.value > 0) && !compound;
+
     let new_swing_icon = compound ? "/static/img/swing-sixteenths.svg" : "/static/img/swing-eighths.svg";
-    id_icon_swing.setAttribute("src", new_swing_icon);
+    document.getElementById("icon-swing").setAttribute("src", new_swing_icon);
 }
 
 function on_change(event)
@@ -151,7 +127,7 @@ function on_change(event)
     send_updates();
 }
 
-function push_button(id, state)
+function toggle_pushed(id, state)
 {    
     let button_container = document.getElementById(id);
     let button = button_container.querySelector("input.transport_button");
@@ -164,22 +140,41 @@ function push_button(id, state)
 function on_transport(event)
 {
     console.log(event.currentTarget.id);
-
+    let id_play = document.getElementById("id_play");
     switch (event.currentTarget.id) {
         case "id_load": break;
             // pull up folder browser
         case "id_prev_song":break;
         case "id_begin_song": break;
-        case "id_play": break;
+        case "id_play":
+            if (paused)
+            {
+                // was paused - start playing, next button will pause
+                socket.emit("transport", "id_play");                
+                console.log(id_play.getAttribute("src"));
+                id_play.setAttribute("src", "/static/img/pause.svg");
+                console.log(id_play.getAttribute("src"));
+            }
+            else
+            {
+                // was playing- stop playing, next button will play
+                socket.emit("transport", "id_pause");
+                console.log(id_play.getAttribute("src"));
+                id_play.setAttribute("src", "/static/img/play.svg");
+                console.log(id_play.getAttribute("src"));
+            }
+            paused = !paused;
+            return;
+            break;
         case "id_next_song": break;
         case "id_repeat":
             settings.repeat = !settings.repeat;
-            push_button(event.currentTarget.id, settings.repeat);
+            toggle_pushed(event.currentTarget.id, settings.repeat);
             break;
 
         case "id_shuffle":
             settings.shuffle = !settings.shuffle;
-            push_button(event.currentTarget.id, settings.shuffle);
+            toggle_pushed(event.currentTarget.id, settings.shuffle);
             break;
     }
     socket.emit("transport", event.currentTarget.id);
@@ -188,7 +183,7 @@ function on_transport(event)
 
 function update_tempo_drag(event)
 {
-    id_disp_tempo.value = id_val_tempo.value;
+    document.getElementById("tempo_output").value = id_val_tempo.value;
     // don't send it here - that will happen in on_change
 }
 
@@ -239,8 +234,8 @@ function show_meter() {
     numerator = formatted;
 
     denominator = String.fromCharCode(zero + parseInt(denominator));
-    id_disp_ts_num.textContent = numerator;
-    id_disp_ts_denom.textContent = denominator;
+    document.getElementById("disp_ts_num").textContent = numerator;
+    document.getElementById("disp_ts_denom").textContent = denominator;
 }
 
 function popup_menu(){
@@ -263,72 +258,60 @@ window.onclick = function(event) {
   }
 }
 
+// Client-side JavaScript code
+socket.on('open_file_dialog', function() {
+    window.location.href = '/file-dialog';
+});
+
 function myLoad(event)
 {
-    // tried to make these const global but not all fields are ready when this loads
-    id_ts_up = document.getElementById("ts_up");
-    id_ts_down = document.getElementById("ts_down");
-    id_ts_dcg = document.getElementById("ts_dbl_click_group");
-    id_icon_beat  = document.getElementById("icon-beat");
-    id_icon_eighth = document.getElementById("icon-eighth");
-    id_icon_sixteenth = document.getElementById("icon-sixteenth");
-    id_icon_swing = document.getElementById("icon-swing");
-    id_val_tempo  = document.getElementById("tempo_slider");
-    id_vol_measure  = document.getElementById("measure_volume");
-    id_vol_beat = document.getElementById("beat_volume");
-    id_vol_eighth = document.getElementById("eighth_volume");
-    id_val_swing = document.getElementById("swing_value");
-    id_vol_sixteenth = document.getElementById("sixteenth_volume");
-    id_disp_tempo = document.getElementById("tempo_output");
-    id_disp_ts_num = document.getElementById("disp_ts_num");
-    id_disp_ts_denom = document.getElementById("disp_ts_denom");
-    id_disconnect = document.getElementById("disconnect_warning");
-    id_dlg_note_number = document.getElementById("note_entry_dialog");
-    id_note_number = document.getElementById("note_number");
-    id_form = document.getElementById("id_form");
-    id_load = document.getElementById("id_load");
-    id_prev_song = document.getElementById("id_prev_song");
-    id_begin_song = document.getElementById("id_begin_song");
-    id_play = document.getElementById("id_play");
-    id_next_song = document.getElementById("id_next_song");
-    id_repeat = document.getElementById("id_repeat");
-    id_shuffle = document.getElementById("id_shuffle");
-    
     // the up/down buttons not the display
-    id_ts_up.addEventListener("click", meter_clicked);
-    id_ts_down.addEventListener("click", meter_clicked);
-    
+    document.getElementById("ts_up").addEventListener("click", meter_clicked);
+    document.getElementById("ts_down").addEventListener("click", meter_clicked);
+
     // The display not the up/down buttons!
-    id_ts_dcg.addEventListener("dblclick", set_midi_note);    
+    document.getElementById("ts_dbl_click_group").addEventListener("dblclick", set_midi_note);
 
-    id_icon_beat.addEventListener("dblclick", set_midi_note);
-    id_icon_eighth.addEventListener("dblclick", set_midi_note);
-    id_icon_sixteenth.addEventListener("dblclick", set_midi_note);
+    document.getElementById("icon-beat").addEventListener("dblclick", set_midi_note);
+    document.getElementById("icon-eighth").addEventListener("dblclick", set_midi_note);
+    document.getElementById("icon-sixteenth").addEventListener("dblclick", set_midi_note);
 
+    let id_val_tempo  = document.getElementById("tempo_slider");
     id_val_tempo.addEventListener("input", update_tempo_drag);
     id_val_tempo.addEventListener("change", on_change);
 
+    let id_vol_measure  = document.getElementById("measure_volume");
     id_vol_measure.addEventListener("change", on_change);
-    id_vol_beat.addEventListener("change", on_change);
-    id_vol_eighth.addEventListener("change", on_change);
-    id_val_swing.addEventListener("change", on_change);
-    id_vol_sixteenth.addEventListener("change", on_change);
+    id_vol_measure.value = settings.measure.volume;
     
-    id_load.addEventListener("click", on_transport);
-    id_prev_song.addEventListener("click", on_transport);
-    id_begin_song.addEventListener("click", on_transport);
-    id_play.addEventListener("click", on_transport);
-    id_next_song.addEventListener("click", on_transport);
-    id_repeat.addEventListener("click", on_transport);
-    id_shuffle.addEventListener("click", on_transport);
+    let id_vol_beat = document.getElementById("beat_volume");
+    id_vol_beat.addEventListener("change", on_change);
+
+    let id_vol_eighth = document.getElementById("eighth_volume");
+    id_vol_eighth.addEventListener("change", on_change);
+    id_vol_eighth.value = settings.eighths.volume;
+
+
+    let id_val_swing = document.getElementById("swing_value");
+    id_val_swing.addEventListener("change", on_change);
+    id_val_swing.value = settings.swing;
+
+    let id_vol_sixteenth = document.getElementById("sixteenth_volume");
+    id_vol_sixteenth.addEventListener("change", on_change);
+    id_vol_sixteenth.value = settings.sixteenths.volume;
+    
+    document.getElementById("id_load").addEventListener("click", on_transport);
+    document.getElementById("id_prev_song").addEventListener("click", on_transport);
+    document.getElementById("id_begin_song").addEventListener("click", on_transport);
+    document.getElementById("id_play").addEventListener("click", on_transport);
+    document.getElementById("id_next_song").addEventListener("click", on_transport);
+    document.getElementById("id_repeat").addEventListener("click", on_transport);
+    document.getElementById("id_shuffle").addEventListener("click", on_transport);
 
     id_val_tempo.value = settings.tempo;
-    id_disp_tempo.value = settings.tempo;
-    id_vol_measure.value = settings.measure.volume;
-    id_vol_beat.value = settings.beat.volume; 
-    id_vol_eighth.value = settings.eighths.volume;
-    id_val_swing.value = settings.swing;
-    id_vol_sixteenth.value = settings.sixteenths.volume;
+    document.getElementById("tempo_output").value = settings.tempo;
+    
+    id_vol_beat.value = settings.beat.volume;     
 
     show_meter();
 
