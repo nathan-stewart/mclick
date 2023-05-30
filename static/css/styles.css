@@ -17,6 +17,16 @@
     font-size: xx-large;
 }
 
+.form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.form .entry:last-child {
+  align-self: flex-end;
+}
+
 .row, .header {
     display: flex;
     align-items: center;
@@ -63,14 +73,6 @@
     justify-content: flex-start;
     width: 30%;
     max-width: 350px;
-}
-
-.gadget{
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 30%;
-    margin: 10px;
 }
 
 .dialog {
@@ -150,15 +152,29 @@ background-color: #ddd;
 background-color: #bbb;
 }
 
+.transport_spacer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
 .transport_container {
   display: flex;
   flex-direction: row;
-  border: double;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  max-width: 400px;
 }
 
 .transport_button {
   height: 40px;
   width: 40px;
+}
+
+.transport_container input {
+  flex: 1;
+  margin: 0 5px; /* Adjust the margin as per your preference */
+  max-width: 200px; /* Adjust the max-width as per your preference */
 }
 
 

@@ -33,7 +33,7 @@
         <p>
     </div>
 
-    <div id="id_form">
+    <div class="form" id="id_form">
         <!-- Tempo -->
         <div class="row">
             <div class="legend">
@@ -82,8 +82,7 @@
             <div class="sliderbox">
                 <input class="slider" id="eighth_volume" type="range" min=0 max=127>
             </div>
-        </div>
-
+        </div>  
         <!-- Swing -->
         <div id=swing_box class="row">
             <div class="legend">
@@ -103,36 +102,39 @@
             <div class="sliderbox">
                 <input class="slider" id="sixteenth_volume" type="range" min=0 max=127>
             </div>
-        </div>        
-    </div>
-    <div class="transport_container">
-        <div id="id_load">
-            <input alt="load" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/eject-load.svg') }}" />
-        </div>
-        <div id="id_prev_song">
-            <input alt="prev" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/back-previous.svg') }}" />
-        </div>
-        <div id="id_begin_song">
-            <input alt="begin" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/fast-backward.svg') }}" />
-        </div>
-        <div id="id_play">
-            <input alt="play" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/play.svg') }}" />
-        </div>
-        <div id="id_next_song">
-            <input alt="next" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/next-end.svg') }}" />
-        </div>
-        <div id="id_repeat">
-            <input alt="repeat" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/repeat.svg') }}" />
-        </div>
-        <div id="id_shuffle">
-            <input alt="shuffle" type="image" class="transport_button"
-                src="{{ url_for('static', filename='img/shuffle-mix.svg') }}" />
+        </div> 
+        
+        <div class="transport_spacer">
+            <div class="transport_container">
+                <div id="id_load">
+                    <input alt="load" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/eject-load.svg') }}" />
+                </div>
+                <div id="id_prev_song">
+                    <input alt="prev" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/back-previous.svg') }}" />
+                </div>
+                <div id="id_begin_song">
+                    <input alt="begin" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/fast-backward.svg') }}" />
+                </div>
+                <div id="id_play">
+                    <input alt="play" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/pause.svg') }}" />
+                </div>
+                <div id="id_next_song">
+                    <input alt="next" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/next-end.svg') }}" />
+                </div>
+                <div id="id_repeat">
+                    <input alt="repeat" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/repeat.svg') }}" />
+                </div>
+                <div id="id_shuffle">
+                    <input alt="shuffle" type="image" class="transport_button"
+                        src="{{ url_for('static', filename='img/shuffle-mix.svg') }}" />
+                </div>
+            </div>
         </div>
     </div>
 
