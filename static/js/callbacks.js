@@ -89,7 +89,7 @@ function note_entry_close(){
 
 function send_updates()
 {
-    settings.tempo             = parseInt(id_val_tempo.value)
+    settings.tempo             = parseInt(document.getElementById("tempo_slider").value)
     settings.measure.volume    = parseInt(document.getElementById("measure_volume").value);
     settings.beat.volume       = parseInt(document.getElementById("beat_volume").value);
     settings.eighths.volume    = parseInt(document.getElementById("eighth_volume").value);
@@ -127,14 +127,11 @@ function on_change(event)
     send_updates();
 }
 
-function toggle_pushed(id, state)
+function set_button_img(id, img)
 {    
     let button_container = document.getElementById(id);
     let button = button_container.querySelector("input.transport_button");
-    let svg = button.getAttribute("src");
-    let base = svg.replace("-pushed", "");
-    base = base.replace(".svg", "");
-    button.setAttribute("src", state ? base + "-pushed.svg" : base + ".svg");
+    button.setAttribute("src", img);
 }
 
 function on_transport(event)
@@ -151,30 +148,31 @@ function on_transport(event)
             {
                 // was paused - start playing, next button will pause
                 socket.emit("transport", "id_play");                
-                console.log(id_play.getAttribute("src"));
-                id_play.setAttribute("src", "/static/img/pause.svg");
-                console.log(id_play.getAttribute("src"));
+                set_button_img(event.currentTarget.id, "/static/img/pause.svg");
             }
             else
             {
-                // was playing- stop playing, next button will play
+                // was playing- stop playing, next button will play                
                 socket.emit("transport", "id_pause");
-                console.log(id_play.getAttribute("src"));
-                id_play.setAttribute("src", "/static/img/play.svg");
-                console.log(id_play.getAttribute("src"));
+                set_button_img(event.currentTarget.id, "/static/img/play.svg");
             }
             paused = !paused;
             return;
-            break;
         case "id_next_song": break;
         case "id_repeat":
             settings.repeat = !settings.repeat;
-            toggle_pushed(event.currentTarget.id, settings.repeat);
+            if (settings.repeat)
+                set_button_img(event.currentTarget.id, "static/img/repeat-pushed.svg");
+            else
+                set_button_img(event.currentTarget.id, "static/img/repeat.svg");
             break;
 
         case "id_shuffle":
             settings.shuffle = !settings.shuffle;
-            toggle_pushed(event.currentTarget.id, settings.shuffle);
+            if (settings.shuffle)
+                set_button_img(event.currentTarget.id, "static/img/shuffle-mix-pushed.svg");
+            else
+                set_button_img(event.currentTarget.id, "static/img/shuffle-mix.svg");
             break;
     }
     socket.emit("transport", event.currentTarget.id);
@@ -183,7 +181,7 @@ function on_transport(event)
 
 function update_tempo_drag(event)
 {
-    document.getElementById("tempo_output").value = id_val_tempo.value;
+    document.getElementById("tempo_output").value = document.getElementById("tempo_slider").value;
     // don't send it here - that will happen in on_change
 }
 
@@ -279,7 +277,8 @@ function myLoad(event)
     let id_val_tempo  = document.getElementById("tempo_slider");
     id_val_tempo.addEventListener("input", update_tempo_drag);
     id_val_tempo.addEventListener("change", on_change);
-
+    id_val_tempo.value = settings.tempo;
+    
     let id_vol_measure  = document.getElementById("measure_volume");
     id_vol_measure.addEventListener("change", on_change);
     id_vol_measure.value = settings.measure.volume;
@@ -307,8 +306,7 @@ function myLoad(event)
     document.getElementById("id_next_song").addEventListener("click", on_transport);
     document.getElementById("id_repeat").addEventListener("click", on_transport);
     document.getElementById("id_shuffle").addEventListener("click", on_transport);
-
-    id_val_tempo.value = settings.tempo;
+    
     document.getElementById("tempo_output").value = settings.tempo;
     
     id_vol_beat.value = settings.beat.volume;     

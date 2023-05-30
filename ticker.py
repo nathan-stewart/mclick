@@ -24,6 +24,7 @@ class Ticker(threading.Thread):
         self.midi_out = None
         self.playlist = []
         self.play_index = None
+        self.pause = threading.Event()
         self.rhythmq = [] # list of SortedLists
         self.rhythm_track = mido.MidiTrack()
         self.rhythm_track.name = 'MClick'
@@ -64,14 +65,38 @@ class Ticker(threading.Thread):
         self.rhythm = self.song.tracks.append(make_rhythm_track(self.song, self.settings))
         
     def update(self, params):
-        self.settings = params
         if params:
             self.midi_setup()
+            #mido.bpm2tempo(self.settings['tempo'])
         else:
             self.midi_teardown()
+        self.settings = params
 
-    def action(self, source):
-        print(source)
+    def load_song(self, filename = None):
+        self.song = mido.MidiFile(filename)
+        initial_tempo = 120
+        for msg in self.song:
+            # any tempo change which occurs after the first note is not an 'initial' tempo
+            if msg.type == 'note_on':
+                break 
+
+            if msg.type == 'set_tempo':
+                initial_tempo = mido.tempo2bpm(msg.tempo)
+                break;
+        self.song.initial_tempo = initial_tempo
+        self.settings['tempo'] = initial_tempo
+    
+    def transport_action(self, source):
+        if source == 'id_prev_song':
+            pass
+        elif source == 'id_begin_song':
+            pass
+        elif source == 'id_play':        
+            self.pause.clear()
+        elif source == 'id_pause':        
+            self.pause.set()
+        elif source == 'id_next_song':
+            pass
 
     def run(self):
         self.play_index = -1
@@ -87,18 +112,25 @@ class Ticker(threading.Thread):
                     self.play_index += 1
                     if self.play_index >=  len(self.playlist):
                         self.play_index = -1
-                self.song = mido.MidiFile(self.playlist[self.play_index])
+                self.load_song(self.playlist[self.play_index])
                 print(self.song.filename)
             else:
-                self.song = mido.MidiFile()
+                self.load_song()
 
             self.make_rhythm_from_song()
             #plot_midi(self.song)
+            
             for msg in self.song.play():
-                if self.stopping.is_set() or not self.settings:
-                    break # break only goes out one loop
-                self.midi_out.send(msg)
+                if self.stopping.is_set():
+                    break
 
+                while self.pause.is_set():
+                    if self.stopping.is_set():
+                        break
+                    time.sleep(0.1)
+                
+                if self.midi_out:
+                    self.midi_out.send(msg) 
             if self.stopping.is_set():
                 break
 

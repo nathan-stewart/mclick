@@ -30,28 +30,34 @@ def check_socketio_server():
 def handle_render_error(data):
     abort(500, 'Client side error: ' + {data})
 
-@app.route('/mclick')
+@app.route('/')
 def index():
-    params = Settings()
-    return render_template('index.html', parameters=params.to_json())
+    return render_template('index.html', parameters=defaults.to_json())
 
 @socketio.on('update_from_gui')
 def on_update(parameters):
-    global ticker
-    print(parameters)
+    global ticker 
     ticker.update(parameters)
     # TBD - save settings
 
 @socketio.on('connect')
 def on_connect():
     global ticker
-    defaults = Settings()
+    global defaults 
     ticker.update(defaults)
+
+@app.route('/file-dialog', methods=['GET', 'POST'])
+def file_dialog():
+    if request.method == 'POST':
+        selected_files = request.form.getlist('files')
+    return render_template('file-dialog.html')
 
 @socketio.on('transport')
 def on_transport(source):
     global ticker
-    ticker.action(source)
+    if source == 'id_load':
+        emit('open_file_dialog')
+    ticker.transport_action(source)
 
 @socketio.on('disconnect')
 def on_disconnect():
