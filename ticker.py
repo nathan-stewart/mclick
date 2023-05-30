@@ -30,6 +30,8 @@ class Ticker(threading.Thread):
         self.rhythm_track.name = 'MClick'
         self.song = mido.MidiFile()
         self.shuffle = False
+        self.interrupt = threading.Event()
+        self.history = []
         if params:
             self.update(params)
 
@@ -73,30 +75,30 @@ class Ticker(threading.Thread):
         self.settings = params
 
     def load_song(self, filename = None):
-        self.song = mido.MidiFile(filename)
-        initial_tempo = 120
-        for msg in self.song:
-            # any tempo change which occurs after the first note is not an 'initial' tempo
-            if msg.type == 'note_on':
-                break 
+        def get_song_tempo(midifile):
+            initial_tempo = 120
+            for msg in midifile:
+                # any tempo change which occurs after the first note is not an 'initial' tempo
+                if msg.type == 'note_on':
+                    break 
 
-            if msg.type == 'set_tempo':
-                initial_tempo = mido.tempo2bpm(msg.tempo)
-                break;
-        self.song.initial_tempo = initial_tempo
+                if msg.type == 'set_tempo':
+                    initial_tempo = mido.tempo2bpm(msg.tempo)
+                    break;
+            return initial_tempo
+        
+        self.song = mido.MidiFile(filename)
+        initial_tempo = get_song_tempo(self.song)
+        self.song.initial_tempo = initial_tempo # add it into the file objecjt for reference
         self.settings['tempo'] = initial_tempo
     
     def transport_action(self, source):
-        if source == 'id_prev_song':
-            pass
-        elif source == 'id_begin_song':
-            pass
-        elif source == 'id_play':        
+        if source == 'id_play':        
             self.pause.clear()
         elif source == 'id_pause':        
             self.pause.set()
         elif source == 'id_next_song':
-            pass
+            self.interrupt.set()
 
     def run(self):
         self.play_index = -1
@@ -121,22 +123,24 @@ class Ticker(threading.Thread):
             #plot_midi(self.song)
             
             for msg in self.song.play():
-                if self.stopping.is_set():
-                    break
-
                 while self.pause.is_set():
-                    if self.stopping.is_set():
+                    if self.interrupt.is_set() or self.stopping.is_set():                        
                         break
                     time.sleep(0.1)
-                
+
+                if self.stopping.is_set() or self.interrupt.is_set():
+                    break;
+
                 if self.midi_out:
                     self.midi_out.send(msg) 
+
             if self.stopping.is_set():
                 break
+            
+            self.interrupt.clear()
 
             if self.play_index >= len(self.playlist):
                 self.play_index = -1
-
 
     def open_files(self, path):
         self.playlist.clear()
